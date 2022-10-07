@@ -12,6 +12,7 @@ import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import java.awt.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -23,7 +24,6 @@ import java.util.logging.Logger;
 
 class EnmapProductReader extends AbstractProductReader {
     private final Logger logger;
-    private EnmapProductReaderPlugIn readerPlugIn;
 
     public EnmapProductReader(EnmapProductReaderPlugIn readerPlugIn) {
         super(readerPlugIn);
@@ -33,15 +33,15 @@ class EnmapProductReader extends AbstractProductReader {
     @Override
     protected Product readProductNodesImpl() throws IOException {
         Path path = InputTypes.toPath(super.getInput());
-        if (path != null) {
-            VirtualDir virtualDir = VirtualDir.create(path.toFile());
-            String[] fileNames = virtualDir.listAllFiles();
-            String metadataFile = getMetadataFile(fileNames);
-            EnmapMetadata metadata = EnmapMetadata.create(virtualDir.getInputStream(metadataFile));
-        }
+        VirtualDir virtualDir = VirtualDir.create(path.toFile());
+        String[] fileNames = virtualDir.listAllFiles();
+        String metadataFile = getMetadataFile(fileNames);
+        EnmapMetadata meta = EnmapMetadata.create(virtualDir.getInputStream(metadataFile));
 
-
-        return null;
+        Dimension dimension = meta.getSceneDimension();
+        Product product = new Product(meta.getProductName(), meta.getProductType(), dimension.width, dimension.height);
+        // todo
+        return product;
     }
 
     private String getMetadataFile(String[] fileNames) throws IOException {

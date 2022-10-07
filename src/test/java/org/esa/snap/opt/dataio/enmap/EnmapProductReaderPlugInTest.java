@@ -21,19 +21,17 @@ public class EnmapProductReaderPlugInTest {
     }
 
     @Test
-    @Ignore("Implement later")
     public void getDecodeQualification_l1b_gtif_zip() throws URISyntaxException {
         File inputZip = new File(getClass().getResource("enmap_L1B_gtif_qualification.zip").toURI());
         DecodeQualification dq = plugIn.getDecodeQualification(inputZip);
-        assertEquals(DecodeQualification.INTENDED, dq);
+        assertEquals(DecodeQualification.UNABLE, dq);
     }
 
     @Test
-    @Ignore("Implement later")
     public void getDecodeQualification_l1c_gtif_zip() throws URISyntaxException {
         File inputZip = new File(getClass().getResource("enmap_L1C_gtif_qualification.zip").toURI());
         DecodeQualification dq = plugIn.getDecodeQualification(inputZip);
-        assertEquals(DecodeQualification.INTENDED, dq);
+        assertEquals(DecodeQualification.UNABLE, dq);
     }
 
     @Test
@@ -44,19 +42,17 @@ public class EnmapProductReaderPlugInTest {
     }
 
     @Test
-    @Ignore("Implement later")
     public void getDecodeQualification_l1b_gtif_folder() throws URISyntaxException {
         File inputFolder = new File(getClass().getResource("enmap_L1B_gtif_qualification/ENMAP01-____L1B-DT000326721_20170626T102020Z_001_V000204_20200406T154119Z-METADATA.XML").toURI());
         DecodeQualification dq = plugIn.getDecodeQualification(inputFolder);
-        assertEquals(DecodeQualification.INTENDED, dq);
+        assertEquals(DecodeQualification.UNABLE, dq);
     }
 
     @Test
-    @Ignore("Implement later")
     public void getDecodeQualification_l1c_gtif_folder() throws URISyntaxException {
         File inputFolder = new File(getClass().getResource("enmap_L1C_gtif_qualification/ENMAP01-____L1C-DT000326721_20170626T102020Z_001_V000204_20200406T180016Z-METADATA.XML").toURI());
         DecodeQualification dq = plugIn.getDecodeQualification(inputFolder);
-        assertEquals(DecodeQualification.INTENDED, dq);
+        assertEquals(DecodeQualification.UNABLE, dq);
     }
 
     @Test

@@ -1,10 +1,11 @@
 package org.esa.snap.opt.dataio.enmap;
 
 import com.bc.ceres.core.VirtualDir;
-import org.esa.snap.core.dataio.*;
+import org.esa.snap.core.dataio.DecodeQualification;
+import org.esa.snap.core.dataio.ProductReader;
+import org.esa.snap.core.dataio.ProductReaderPlugIn;
 import org.esa.snap.core.util.io.SnapFileFilter;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Locale;
@@ -13,13 +14,16 @@ public class EnmapProductReaderPlugIn implements ProductReaderPlugIn {
 
     public static final String[] FILE_EXTENSIONS = {".zip", ".xml"};
     public static final String DESCRIPTION = "EnMAP L1B/L1C/L2A Product Reader";
-    private String[] FORMAT_NAMES = new String[]{"EnMAP L1B/L1C/L2A"};
+    private final String[] FORMAT_NAMES = new String[]{"EnMAP L1B/L1C/L2A"};
 
 
     @Override
     public DecodeQualification getDecodeQualification(Object o) {
         try {
             Path path = convertToPath(o);
+            if (path == null) {
+                return DecodeQualification.INTENDED;
+            }
             if (!isZip(path)) {
                 path = path.getParent();
             }
@@ -47,7 +51,7 @@ public class EnmapProductReaderPlugIn implements ProductReaderPlugIn {
     }
 
     @Override
-    public Class[] getInputTypes() {
+    public Class<?>[] getInputTypes() {
         return InputTypes.getTypes();
     }
 
@@ -80,13 +84,17 @@ public class EnmapProductReaderPlugIn implements ProductReaderPlugIn {
     }
 
     private boolean areEnmapL1bFiles(String[] fileNames) {
-        // todo
         return false;
+        // enable code below when L1B is supported
+//        return Arrays.stream(EnmapFileUtils.L1B_FILENAME_PATTERNS).allMatch(p ->
+//                Arrays.stream(fileNames).anyMatch(f -> p.matcher(f).matches()));
     }
 
     private boolean areEnmapL1cFiles(String[] fileNames) {
-        // todo
         return false;
+        // enable code below when L1C is supported
+//        return Arrays.stream(EnmapFileUtils.L1C_FILENAME_PATTERNS).allMatch(p ->
+//                Arrays.stream(fileNames).anyMatch(f -> p.matcher(f).matches()));
     }
 
     private boolean areEnmapL2aFiles(String[] fileNames) {

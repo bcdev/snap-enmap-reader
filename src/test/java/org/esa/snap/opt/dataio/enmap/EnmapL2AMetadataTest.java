@@ -3,14 +3,15 @@ package org.esa.snap.opt.dataio.enmap;
 import org.esa.snap.core.datamodel.ProductData;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
 
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Calendar;
+import java.util.Objects;
 import java.util.TimeZone;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -24,7 +25,31 @@ public class EnmapL2AMetadataTest {
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        meta = EnmapMetadata.create(getMetaDataStream("ENMAP01-____L2A-DT000326721_20170626T102020Z_001_V000204_20200406T201930Z-METADATA.XML"));
+        URI resource = Objects.requireNonNull(EnmapMetadataTestUtils.class.getResource("enmap_L2A_gtif_qualification.zip")).toURI();
+        try (ZipFile zip = new ZipFile(new File(resource))) {
+            ZipEntry entry = zip.getEntry("ENMAP01-____L2A-DT000326721_20170626T102020Z_001_V000204_20200406T201930Z-METADATA.XML");
+            meta = EnmapMetadata.create(zip.getInputStream(entry));
+        }
+    }
+
+    @Test
+    public void testSchemaVersion() throws IOException {
+        assertEquals("00.02.00", meta.getSchemaVersion());
+    }
+
+    @Test
+    public void testProcessingVersion() throws IOException {
+        assertEquals("00.02.04", meta.getProcessingVersion());
+    }
+
+    @Test
+    public void testL0ProcessingVersion() throws IOException {
+        assertEquals("00.02.04", meta.getL0ProcessingVersion());
+    }
+
+    @Test
+    public void testProductFormat() throws IOException {
+        assertEquals("GeoTIFF+Metadata", meta.getProductFormat());
     }
 
     @Test
@@ -60,6 +85,39 @@ public class EnmapL2AMetadataTest {
     }
 
     @Test
+    public void testSpatialCoverage() throws IOException {
+        Geometry spatialCoverage = meta.getSpatialCoverage();
+        Coordinate[] coordinates = spatialCoverage.getCoordinates();
+        assertEquals(new Coordinate(10.7960234, 47.7875252), coordinates[0]);
+        assertEquals(new Coordinate(10.7108641, 47.5192797), coordinates[1]);
+        assertEquals(new Coordinate(11.0813528, 47.4554646), coordinates[2]);
+        assertEquals(new Coordinate(11.1687202, 47.7235135), coordinates[3]);
+        assertEquals(new Coordinate(10.7960234, 47.7875252), coordinates[4]);
+    }
+
+    @Test
+    public void testSpatialOrthoCoverage() throws IOException {
+        Geometry orthoCoverage = meta.getSpatialOrthoCoverage();
+        Coordinate[] coordinates = orthoCoverage.getCoordinates();
+        assertEquals(new Coordinate(4.5113521, 4.31E-4), coordinates[0]);
+        assertEquals(new Coordinate(4.511352, 4.281E-4), coordinates[1]);
+        assertEquals(new Coordinate(4.5113561, 4.28E-4), coordinates[2]);
+        assertEquals(new Coordinate(4.5113562, 4.31E-4), coordinates[3]);
+        assertEquals(new Coordinate(4.5113521, 4.31E-4), coordinates[4]);
+    }
+
+    @Test
+    public void testGeoReferencing() throws IOException {
+        GeoReferencing geoReferencing = meta.getGeoReferencing();
+        assertEquals("UTM_Zone32_North", geoReferencing.projection);
+        assertEquals(30, geoReferencing.resolution, 1.0e-8);
+        assertEquals(0, geoReferencing.easting, 1.0e-8);
+        assertEquals(0, geoReferencing.northing, 1.0e-8);
+        assertEquals(0, geoReferencing.refX, 1.0e-8);
+        assertEquals(0, geoReferencing.refY, 1.0e-8);
+    }
+
+    @Test
     public void testAngles() throws IOException {
         assertArrayEquals(new double[]{62.843017, 63.025996, 63.232013, 63.048052}, meta.getSunElevationAngles(), 1.0e-6f);
         assertEquals(63.038384f, meta.getSunElevationAngleCenter(), 1.0e-6);
@@ -75,13 +133,6 @@ public class EnmapL2AMetadataTest {
 
         assertArrayEquals(new double[]{14.2906888082, 14.2906888082, 14.2149804324, 14.2149804324}, meta.getSceneAzimuthAngles(), 1.0e-6f);
         assertEquals(14.2528346203, meta.getSceneAzimuthAngleCenter(), 1.0e-6);
-    }
-
-    private static InputStream getMetaDataStream(String fileName) throws URISyntaxException, IOException {
-        URI resource = EnmapL2AMetadataTest.class.getResource("ENMAP_L1B-L1C-L2A-METADATA.zip").toURI();
-        ZipFile zip = new ZipFile(new File(resource));
-        ZipEntry entry = zip.getEntry(fileName);
-        return zip.getInputStream(entry);
     }
 
 }
