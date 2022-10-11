@@ -7,7 +7,10 @@ import org.esa.snap.core.dataio.ProductReaderPlugIn;
 import org.esa.snap.core.util.io.SnapFileFilter;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 
 public class EnmapProductReaderPlugIn implements ProductReaderPlugIn {
@@ -24,14 +27,18 @@ public class EnmapProductReaderPlugIn implements ProductReaderPlugIn {
             if (path == null) {
                 return DecodeQualification.INTENDED;
             }
-            if (!isZip(path)) {
+            if (!EnmapFileUtils.isZip(path)) {
                 path = path.getParent();
             }
             if (path != null) {
                 VirtualDir virtualDir;
                 virtualDir = VirtualDir.create(path.toFile());
                 String[] fileNames = virtualDir.listAllFiles();
-                if (areEnmapL1bFiles(fileNames) || areEnmapL1cFiles(fileNames) || areEnmapL2aFiles(fileNames)) {
+                List<Path> filePaths = new ArrayList<>();
+                for (String fileName : fileNames) {
+                    filePaths.add(Paths.get(fileName));
+                }
+                if (areEnmapL1bFiles(filePaths) || areEnmapL1cFiles(filePaths) || areEnmapL2aFiles(filePaths)) {
                     return DecodeQualification.INTENDED;
                 }
             }
@@ -39,10 +46,6 @@ public class EnmapProductReaderPlugIn implements ProductReaderPlugIn {
             return DecodeQualification.UNABLE;
         }
         return DecodeQualification.UNABLE;
-    }
-
-    private static boolean isZip(Path path) {
-        return path.getFileName().toString().toLowerCase().endsWith("zip");
     }
 
     @Override
@@ -83,23 +86,19 @@ public class EnmapProductReaderPlugIn implements ProductReaderPlugIn {
         }
     }
 
-    private boolean areEnmapL1bFiles(String[] fileNames) {
-        return false;
-        // enable code below when L1B is supported
-//        return Arrays.stream(EnmapFileUtils.L1B_FILENAME_PATTERNS).allMatch(p ->
-//                Arrays.stream(fileNames).anyMatch(f -> p.matcher(f).matches()));
+    private boolean areEnmapL1bFiles(List<Path> filePaths) {
+        return Arrays.stream(EnmapFileUtils.L1B_FILENAME_PATTERNS).allMatch(p ->
+                filePaths.stream().anyMatch(path -> p.matcher(path.getFileName().toString()).matches()));
     }
 
-    private boolean areEnmapL1cFiles(String[] fileNames) {
-        return false;
-        // enable code below when L1C is supported
-//        return Arrays.stream(EnmapFileUtils.L1C_FILENAME_PATTERNS).allMatch(p ->
-//                Arrays.stream(fileNames).anyMatch(f -> p.matcher(f).matches()));
+    private boolean areEnmapL1cFiles(List<Path> filePaths) {
+        return Arrays.stream(EnmapFileUtils.L1C_FILENAME_PATTERNS).allMatch(p ->
+                filePaths.stream().anyMatch(path -> p.matcher(path.getFileName().toString()).matches()));
     }
 
-    private boolean areEnmapL2aFiles(String[] fileNames) {
+    private boolean areEnmapL2aFiles(List<Path> filePaths) {
         return Arrays.stream(EnmapFileUtils.L2A_FILENAME_PATTERNS).allMatch(p ->
-                Arrays.stream(fileNames).anyMatch(f -> p.matcher(f).matches()));
+                filePaths.stream().anyMatch(path -> p.matcher(path.getFileName().toString()).matches()));
     }
 
 }

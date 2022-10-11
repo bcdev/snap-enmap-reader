@@ -44,6 +44,12 @@
             <version>${snap.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>it.geosolutions.imageio-ext</groupId>
+            <artifactId>imageio-ext-tiff</artifactId>
+            <version>1.3.3.2-SNAP</version>
+        </dependency>
+
 
         <dependency>
             <groupId>junit</groupId>
@@ -69,32 +75,27 @@
                 </dependencies>
                 <configuration>
                     <moduleType>normal</moduleType>
-                    <licenseName>GPL 3</licenseName>
                     <homePageUrl>https://step.esa.int/main/</homePageUrl>
-                    <licenseFile>${project.basedir}/../LICENSE.html</licenseFile>
+                    <licenseName>GPL 3</licenseName>
+                    <licenseFile>${project.basedir}/LICENSE.html</licenseFile>
                     <requiresRestart>true</requiresRestart>
-                    <sourceManifestFile>target/nbm/manifest.mf</sourceManifestFile>
+                    <verifyRuntime>false</verifyRuntime>
                 </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>2.5</version>
+                <version>3.0.2</version>
                 <configuration>
-                    <useDefaultManifestFile>true</useDefaultManifestFile>
+                    <archive>
+                        <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+                    </archive>
                 </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>jar</goal>
-                            <goal>test-jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.5.1</version>
+                <version>3.10.0</version>
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
@@ -134,7 +135,7 @@
             </plugin>
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
-                <version>2.7</version>
+                <version>3.3.0</version>
                 <configuration>
                     <encoding>UTF-8</encoding>
                 </configuration>
@@ -176,7 +177,7 @@
 
             <plugin>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>2.4</version>
+                <version>3.2.1</version>
                 <executions>
                     <execution>
                         <phase>verify</phase>

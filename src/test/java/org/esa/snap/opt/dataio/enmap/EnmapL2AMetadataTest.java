@@ -81,7 +81,8 @@ public class EnmapL2AMetadataTest {
 
         assertEquals("ENMAP01-____L2A-DT000326721_20170626T102020Z_001_V000204_20200406T201930Z", meta.getProductName());
         assertEquals("ENMAP_L2A", meta.getProductType());
-        assertEquals(new Dimension(1000, 1024), meta.getSceneDimension());
+        assertEquals(new Dimension(1128, 1212), meta.getSceneDimension());
+        assertEquals(218, meta.getNumSpectralBands());
     }
 
     @Test
@@ -135,4 +136,7 @@ public class EnmapL2AMetadataTest {
         assertEquals(14.2528346203, meta.getSceneAzimuthAngleCenter(), 1.0e-6);
     }
 
+    @Test
+    public void testFileMap() {
+    }
 }

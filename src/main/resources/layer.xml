@@ -1,0 +1,30 @@
+
+<filesystem>
+
+    <folder name="Actions">
+        <folder name="Readers">
+            <file name="org-esa-snap-dataio-ImportEnmapProduct.instance">
+                <attr name="instanceCreate" methodvalue="org.openide.awt.Actions.alwaysEnabled"/>
+                <attr name="delegate" methodvalue="org.esa.snap.rcp.actions.file.ImportProductAction.create"/>
+                <attr name="displayName" stringvalue="EnMAP data"/>
+                <attr name="formatName" stringvalue="EnMAP L1B/L1C/L2A"/>
+                <attr name="useAllFileFilter" boolvalue="false"/>
+                <attr name="helpId" stringvalue="importEnmapProduct"/>
+            </file>
+        </folder>
+    </folder>
+
+    <folder name="Menu">
+        <folder name="File">
+            <folder name="Import">
+                <folder name="Optical Sensors">
+                    <file name="org-esa-snap-dataio-ImportEnmapProduct.shadow">
+                        <attr name="originalFile"
+                              stringvalue="Actions/Readers/org-esa-snap-dataio-ImportEnmapProduct.instance"/>
+                    </file>
+                </folder>
+            </folder>
+        </folder>
+    </folder>
+
+</filesystem>

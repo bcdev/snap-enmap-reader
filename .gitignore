@@ -8,6 +8,7 @@
 
 # IDE
 .idea
+.run
 
 # Package Files #
 *.jar

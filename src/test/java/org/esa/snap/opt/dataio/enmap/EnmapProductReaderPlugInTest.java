@@ -24,14 +24,14 @@ public class EnmapProductReaderPlugInTest {
     public void getDecodeQualification_l1b_gtif_zip() throws URISyntaxException {
         File inputZip = new File(getClass().getResource("enmap_L1B_gtif_qualification.zip").toURI());
         DecodeQualification dq = plugIn.getDecodeQualification(inputZip);
-        assertEquals(DecodeQualification.UNABLE, dq);
+        assertEquals(DecodeQualification.INTENDED, dq);
     }
 
     @Test
     public void getDecodeQualification_l1c_gtif_zip() throws URISyntaxException {
         File inputZip = new File(getClass().getResource("enmap_L1C_gtif_qualification.zip").toURI());
         DecodeQualification dq = plugIn.getDecodeQualification(inputZip);
-        assertEquals(DecodeQualification.UNABLE, dq);
+        assertEquals(DecodeQualification.INTENDED, dq);
     }
 
     @Test
@@ -45,14 +45,14 @@ public class EnmapProductReaderPlugInTest {
     public void getDecodeQualification_l1b_gtif_folder() throws URISyntaxException {
         File inputFolder = new File(getClass().getResource("enmap_L1B_gtif_qualification/ENMAP01-____L1B-DT000326721_20170626T102020Z_001_V000204_20200406T154119Z-METADATA.XML").toURI());
         DecodeQualification dq = plugIn.getDecodeQualification(inputFolder);
-        assertEquals(DecodeQualification.UNABLE, dq);
+        assertEquals(DecodeQualification.INTENDED, dq);
     }
 
     @Test
     public void getDecodeQualification_l1c_gtif_folder() throws URISyntaxException {
         File inputFolder = new File(getClass().getResource("enmap_L1C_gtif_qualification/ENMAP01-____L1C-DT000326721_20170626T102020Z_001_V000204_20200406T180016Z-METADATA.XML").toURI());
         DecodeQualification dq = plugIn.getDecodeQualification(inputFolder);
-        assertEquals(DecodeQualification.UNABLE, dq);
+        assertEquals(DecodeQualification.INTENDED, dq);
     }
 
     @Test
