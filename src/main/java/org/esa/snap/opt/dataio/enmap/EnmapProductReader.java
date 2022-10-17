@@ -2,7 +2,6 @@ package org.esa.snap.opt.dataio.enmap;
 
 import com.bc.ceres.core.ProgressMonitor;
 import com.bc.ceres.core.VirtualDir;
-import it.geosolutions.imageioimpl.plugins.tiff.TIFFRenderedImage;
 import org.esa.snap.core.dataio.AbstractProductReader;
 import org.esa.snap.core.dataio.ProductIO;
 import org.esa.snap.core.dataio.ProductReader;
@@ -12,7 +11,6 @@ import org.geotools.referencing.CRS;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
 
-import javax.media.jai.operator.BandSelectDescriptor;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -33,7 +31,7 @@ import static org.esa.snap.opt.dataio.enmap.EnmapFileUtils.SPECTRAL_IMAGE_KEY;
 class EnmapProductReader extends AbstractProductReader {
     public static final String CANNOT_READ_PRODUCT_MSG = "Cannot read product";
     private VirtualDir dataDir;
-    private GeoTiffImageReader spectralImageReader;
+    private SpectralImageReader spectralImageReader;
 
     private final Map<String, RenderedImage> bandImageMap = new TreeMap<>();
 
@@ -97,35 +95,24 @@ class EnmapProductReader extends AbstractProductReader {
      */
     private void addSpectralBands(Product product, EnmapMetadata meta) throws IOException {
 
-        Map<String, String> fileNameMap = meta.getFileNameMap();
-        String spectralFileName = fileNameMap.get(SPECTRAL_IMAGE_KEY);
-        TIFFRenderedImage baseImage = null;
-        try {
-            spectralImageReader = new GeoTiffImageReader(dataDir.getInputStream(spectralFileName), () -> {
-            });
-            baseImage = spectralImageReader.getBaseImage();
-            product.setPreferredTileSize(baseImage.getTileWidth(), baseImage.getTileHeight());
-        } catch (IllegalStateException ignore) {
-        }
+        spectralImageReader = SpectralImageReader.create(dataDir, meta);
+        product.setPreferredTileSize(spectralImageReader.getTileDimension());
 
         int dataType = ProductData.TYPE_INT16;
         int numBands = meta.getNumSpectralBands();
         for (int i = 0; i < numBands; i++) {
-            int bandIndex = i + 1;
-            String bandName = String.format("band_%d", bandIndex);
+            String bandName = String.format("band_%d", i + 1);
             Band band = new Band(bandName, dataType, product.getSceneRasterWidth(), product.getSceneRasterHeight());
-            band.setSpectralBandIndex(bandIndex - 1);
-            float centralWavelength = meta.getCentralWavelength(bandIndex);
-            band.setSpectralWavelength(centralWavelength);
-            band.setSpectralBandwidth(meta.getBandwidth(bandIndex));
-            band.setDescription("Surface reflectance @" + centralWavelength);
-            band.setScalingFactor(meta.getBandScaling(bandIndex));
-            band.setScalingOffset(meta.getBandOffset(bandIndex));
-            band.setNoDataValue(meta.getSpectralBackgroundValue(bandIndex));
+            band.setSpectralBandIndex(i);
+            band.setSpectralWavelength(meta.getCentralWavelength(i));
+            band.setSpectralBandwidth(meta.getBandwidth(i));
+            band.setDescription(meta.getSpectralBandDescription(i));
+            band.setUnit(meta.getSpectralUnit());
+            band.setScalingFactor(meta.getBandScaling(i));
+            band.setScalingOffset(meta.getBandOffset(i));
+            band.setNoDataValue(meta.getSpectralBackgroundValue());
             band.setNoDataValueUsed(true);
-            if (baseImage != null) {
-                bandImageMap.put(bandName, BandSelectDescriptor.create(baseImage, new int[]{i}, null));
-            }
+            bandImageMap.put(bandName, spectralImageReader.getImageAt(i));
             product.addBand(band);
         }
 

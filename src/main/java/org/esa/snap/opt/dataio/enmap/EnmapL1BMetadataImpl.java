@@ -9,10 +9,10 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-class EnmapL1MetadataImpl extends EnmapMetadata {
+class EnmapL1BMetadataImpl extends EnmapMetadata {
 
-    EnmapL1MetadataImpl(Document doc, XPath xPath) {
-       super(doc, xPath);
+    EnmapL1BMetadataImpl(Document doc, XPath xPath) {
+        super(doc, xPath);
     }
 
     @Override
@@ -20,6 +20,16 @@ class EnmapL1MetadataImpl extends EnmapMetadata {
         int width = Integer.parseInt(getNodeContent("/level_X/specific/widthOfScene"));
         int height = Integer.parseInt(getNodeContent("/level_X/specific/heightOfScene"));
         return new Dimension(width, height);
+    }
+
+    @Override
+    public String getSpectralBandDescription(int index) throws IOException {
+        return String.format("Sensor radiance @%s", getCentralWavelength(index));
+    }
+
+    @Override
+    public String getSpectralUnit() {
+        return "W/m^2/sr/nm";
     }
 
     @Override
@@ -43,4 +53,10 @@ class EnmapL1MetadataImpl extends EnmapMetadata {
         return map;
     }
 
+    @Override
+    public int getNumSpectralBands() throws IOException {
+        int vnirChannels = Integer.parseInt(getNodeContent("/level_X/product/image/vnir/channels"));
+        int swirChannels = Integer.parseInt(getNodeContent("/level_X/product/image/swir/channels"));
+        return vnirChannels + swirChannels;
+    }
 }

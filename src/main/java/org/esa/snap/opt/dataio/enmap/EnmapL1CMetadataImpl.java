@@ -1,6 +1,5 @@
 package org.esa.snap.opt.dataio.enmap;
 
-import org.locationtech.jts.geom.Geometry;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 
@@ -10,42 +9,27 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-class EnmapL2AMetadataImpl extends EnmapMetadata {
+class EnmapL1CMetadataImpl extends EnmapMetadata {
 
-    EnmapL2AMetadataImpl(Document doc, XPath xPath) {
+    EnmapL1CMetadataImpl(Document doc, XPath xPath) {
         super(doc, xPath);
     }
 
     @Override
     public Dimension getSceneDimension() throws IOException {
-        int width = Integer.parseInt(getNodeContent("/level_X/specific/widthOfOrthoScene"));
-        int height = Integer.parseInt(getNodeContent("/level_X/specific/heightOfOrthoScene"));
+        int width = Integer.parseInt(getNodeContent("/level_X/specific/widthOfScene"));
+        int height = Integer.parseInt(getNodeContent("/level_X/specific/heightOfScene"));
         return new Dimension(width, height);
-    }
-
-    public Geometry getSpatialCoverage() throws IOException {
-        double[] lats = getDoubleValues("/level_X/base/spatialCoverage/boundingPolygon/*/latitude", 5);
-        double[] lons = getDoubleValues("/level_X/base/spatialCoverage/boundingPolygon/*/longitude", 5);
-        // in L2A metadata the 5th coordinate is not equal to the first. The precision is higher.
-        lats[4] = lats[0];
-        lons[4] = lons[0];
-        return createPolygon(lats, lons);
     }
 
     @Override
     public String getSpectralBandDescription(int index) throws IOException {
-        return String.format("Surface reflectance @%s", getCentralWavelength(index));
+        return String.format("Sensor radiance @%s", getCentralWavelength(index));
     }
 
     @Override
     public String getSpectralUnit() {
-        return "";
-    }
-
-    @Override
-    public float getSpectralBackgroundValue() throws IOException {
-        // For L2A the background value is not available or wrong in the testdata
-        return -32768;
+        return "W/m^2/sr/nm";
     }
 
     @Override
@@ -63,6 +47,7 @@ class EnmapL2AMetadataImpl extends EnmapMetadata {
         map.put(EnmapFileUtils.QUALITY_SNOW_KEY, getFileName(EnmapFileUtils.QUALITY_SNOW_KEY, nodeSet));
         map.put(EnmapFileUtils.QUALITY_TESTFLAGS_KEY, getFileName(EnmapFileUtils.QUALITY_TESTFLAGS_KEY, nodeSet));
         map.put(EnmapFileUtils.QUALITY_PIXELMASK_KEY, getFileName(EnmapFileUtils.QUALITY_PIXELMASK_KEY, nodeSet));
+
         return map;
     }
 
