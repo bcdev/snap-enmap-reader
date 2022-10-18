@@ -74,8 +74,8 @@ public class EnmapFileUtils {
     public final static String QUALITY_TESTFLAGS_VNIR_KEY = "QUALITY_TESTFLAGS_VNIR";
     public final static String QUALITY_TESTFLAGS_SWIR_KEY = "QUALITY_TESTFLAGS_SWIR";
     public final static String QUALITY_PIXELMASK_KEY = "PIXELMASK";
-    public final static String QUALITY_PIXELMASK_VNIR_KEY = "QUALITY_PIXELMASK_VNIR";
-    public final static String QUALITY_PIXELMASK_SWIR_KEY = "QUALITY_PIXELMASK_SWIR";
+    public final static String QUALITY_PIXELMASK_VNIR_KEY = "PIXELMASK_VNIR";
+    public final static String QUALITY_PIXELMASK_SWIR_KEY = "PIXELMASK_SWIR";
 
 
     static boolean isZip(Path path) {
