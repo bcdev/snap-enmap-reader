@@ -1,17 +1,13 @@
 package org.esa.snap.opt.dataio.enmap;
 
-import org.esa.snap.core.datamodel.Product;
 import org.esa.snap.core.util.SystemUtils;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
-
-import static org.junit.Assert.*;
 
 public class EnmapProductReaderTest {
 

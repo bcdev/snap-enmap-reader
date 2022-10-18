@@ -31,8 +31,16 @@ import java.util.stream.IntStream;
 import static org.esa.snap.opt.dataio.enmap.EnmapFileUtils.QUALITY_CLASSES_KEY;
 
 class EnmapProductReader extends AbstractProductReader {
-    public static final String CANNOT_READ_PRODUCT_MSG = "Cannot read product";
     public static final int KM_IN_METERS = 1000;
+    public static final String SCENE_AZIMUTH_TPG_NAME = "scene_azimuth";
+    public static final String SUN_AZIMUTH_TPG_NAME = "sun_azimuth";
+    public static final String SUN_ELEVATION_TPG_NAME = "sun_elevation";
+    public static final String ACROSS_OFF_NADIR_TPG_NAME = "across_off_nadir";
+    public static final String ALONG_OFF_NADIR_TPG_NAME = "along_off_nadir";
+
+    private  static final String CANNOT_READ_PRODUCT_MSG = "Cannot read product";
+    private final Object syncObject;
+
     private VirtualDir dataDir;
     private SpectralImageReader spectralImageReader;
 
@@ -40,6 +48,7 @@ class EnmapProductReader extends AbstractProductReader {
 
     public EnmapProductReader(EnmapProductReaderPlugIn readerPlugIn) {
         super(readerPlugIn);
+        syncObject = new Object();
     }
 
     @Override
@@ -70,11 +79,11 @@ class EnmapProductReader extends AbstractProductReader {
     }
 
     private void addTiePointGrids(Product product, EnmapMetadata meta) throws IOException {
-        addTPG(product, "scene_azimuth", meta.getSceneAzimuthAngles());
-        addTPG(product, "sun_azimuth", meta.getSunAzimuthAngles());
-        addTPG(product, "sun_elevation", meta.getSunElevationAngles());
-        addTPG(product, "across_off_nadir", meta.getAcrossOffNadirAngles());
-        addTPG(product, "along_off_nadir", meta.getAlongOffNadirAngles());
+        addTPG(product, SCENE_AZIMUTH_TPG_NAME, meta.getSceneAzimuthAngles());
+        addTPG(product, SUN_AZIMUTH_TPG_NAME, meta.getSunAzimuthAngles());
+        addTPG(product, SUN_ELEVATION_TPG_NAME, meta.getSunElevationAngles());
+        addTPG(product, ACROSS_OFF_NADIR_TPG_NAME, meta.getAcrossOffNadirAngles());
+        addTPG(product, ALONG_OFF_NADIR_TPG_NAME, meta.getAlongOffNadirAngles());
     }
 
     private static TiePointGrid addTPG(Product product, String tpgName, double[] tpgValue) {
@@ -141,7 +150,7 @@ class EnmapProductReader extends AbstractProductReader {
                                           Band destBand, int destOffsetX, int destOffsetY, int destWidth, int destHeight,
                                           ProductData destBuffer, ProgressMonitor pm) {
         int[] samples;
-        synchronized (spectralImageReader) {
+        synchronized (syncObject) {
             RenderedImage renderedImage = bandImageMap.get(destBand.getName());
             Raster data = renderedImage.getData(new Rectangle(destOffsetX, destOffsetY, destWidth, destHeight));
             samples = data.getSamples(destOffsetX, destOffsetY, destWidth, destHeight, 0, (int[]) null);

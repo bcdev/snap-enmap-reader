@@ -16,13 +16,10 @@ import javax.xml.xpath.*;
 import java.awt.*;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
 
@@ -35,22 +32,11 @@ public abstract class EnmapMetadata {
 
     enum PROCESSING_LEVEL {L1B, L1C, L2A}
 
-    String BSQ_Metadata = "BSQ+Metadata";
-    String BIL_Metadata = "BIL+Metadata";
-    String BIP_Metadata = "BIP+Metadata";
-    String J2K_Metadata = "JPEG2000+Metadata";
-    String GTF_Metadata = "GeoTIFF+Metadata";
     String NOT_AVAILABLE = "NA";
 
     protected EnmapMetadata(Document doc, XPath xpath) {
         this.xpath = xpath;
         this.doc = doc;
-    }
-
-    static EnmapMetadata create(Path metadataPath) throws IOException {
-        try (InputStream inputStream = Files.newInputStream(metadataPath)) {
-            return create(inputStream);
-        }
     }
 
     static EnmapMetadata create(InputStream inputStream) throws IOException {
@@ -67,25 +53,6 @@ public abstract class EnmapMetadata {
             default:
                 throw new IOException(String.format("Unknown product level '%s'", processingLevel));
         }
-    }
-
-    static Document createXmlDocument(InputStream inputStream) throws IOException {
-        try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            factory.setNamespaceAware(true);
-            return factory.newDocumentBuilder().parse(inputStream);
-        } catch (ParserConfigurationException | SAXException e) {
-            throw new IOException("Cannot create document from manifest XML file.", e);
-        }
-    }
-
-    // todo - this method is borrowed from ISO8601Converter class in SNAP 10 (snap-core)
-    // todo - when using SNAP 10 this method should be replaced
-    static ProductData.UTC parseTimeString(String iso8601String) {
-        final TemporalAccessor accessor = EnmapMetadata.FORMATTER.parse(iso8601String);
-        final ZonedDateTime time = ZonedDateTime.from(accessor);
-        final Date date = Date.from(time.toInstant());
-        return ProductData.UTC.create(date, time.get(ChronoField.MICRO_OF_SECOND));
     }
 
     /**
@@ -126,10 +93,6 @@ public abstract class EnmapMetadata {
      */
     public String getProcessingLevel() throws IOException {
         return getProcessingLevel(xpath, doc);
-    }
-
-    private static String getProcessingLevel(XPath xPath, Document xmlDocument) throws IOException {
-        return getNodeContent("/level_X/base/level", xPath, xmlDocument);
     }
 
     /**
@@ -407,26 +370,66 @@ public abstract class EnmapMetadata {
      *
      * @throws IOException in case the metadata XML file could not be read
      */
-    abstract Map<String, String> getFileNameMap() throws IOException;
+    public abstract Map<String, String> getFileNameMap() throws IOException;
 
+    /**
+     * returns the number of spectral bands
+     *
+     * @return the number of spectral bands
+     * @throws IOException in case the metadata XML file could not be read
+     */
     public abstract int getNumSpectralBands() throws IOException;
 
+    /**
+     * returns the central wavelength of the channel at the specified spectral index
+     *
+     * @param index the spectral index
+     * @return the central wavelength
+     * @throws IOException in case the metadata XML file could not be read
+     */
     public float getCentralWavelength(int index) throws IOException {
         return Float.parseFloat(getNodeContent(String.format("/level_X/specific/bandCharacterisation/bandID[@number='%d']/wavelengthCenterOfBand", index + 1)));
     }
 
+    /**
+     * returns the bandwidth of the channel at the specified spectral index
+     *
+     * @param index the spectral index
+     * @return the bandwidth
+     * @throws IOException in case the metadata XML file could not be read
+     */
     public float getBandwidth(int index) throws IOException {
         return Float.parseFloat(getNodeContent(String.format("/level_X/specific/bandCharacterisation/bandID[@number='%d']/FWHMOfBand", index + 1)));
     }
 
+    /**
+     * returns the scaling factor to convert from raw numbers to geophysical values of the channel at the specified spectral index
+     *
+     * @param index the spectral index
+     * @return the scaling factor
+     * @throws IOException in case the metadata XML file could not be read
+     */
     public float getBandScaling(int index) throws IOException {
         return Float.parseFloat(getNodeContent(String.format("/level_X/specific/bandCharacterisation/bandID[@number='%d']/GainOfBand", index + 1)));
     }
 
+    /**
+     * returns the scaling offset to convert from raw numbers to geophysical values of the channel at the specified spectral index
+     *
+     * @param index the spectral index
+     * @return the scaling offset
+     * @throws IOException in case the metadata XML file could not be read
+     */
     public float getBandOffset(int index) throws IOException {
         return Float.parseFloat(getNodeContent(String.format("/level_X/specific/bandCharacterisation/bandID[@number='%d']/OffsetOfBand", index + 1)));
     }
 
+    /**
+     * the background (no-data) value indicating that the pixel contains no measurement
+     *
+     * @return the background value
+     * @throws IOException in case the metadata XML file could not be read
+     */
     public float getSpectralBackgroundValue() throws IOException {
         return Float.parseFloat(getNodeContent("/level_X/specific/backgroundValue"));
     }
@@ -438,7 +441,6 @@ public abstract class EnmapMetadata {
      */
     public abstract String getSpectralBandDescription(int index) throws IOException;
 
-
     /**
      * Returns the physical unit of the spectral channels
      *
@@ -446,14 +448,70 @@ public abstract class EnmapMetadata {
      */
     public abstract String getSpectralUnit();
 
-
-    Node getNode(String path) throws IOException {
-        return getNode(path, xpath, doc);
-    }
-
-    String getNodeContent(String path) throws IOException {
+    protected String getNodeContent(String path) throws IOException {
         return getNodeContent(path, xpath, doc);
 
+    }
+
+    protected NodeList getNodeSet(String path) throws IOException {
+        try {
+            XPathExpression expr = xpath.compile(path);
+            return (NodeList) expr.evaluate(doc, XPathConstants.NODESET);
+        } catch (XPathExpressionException e) {
+            throw new IOException(String.format("Not able to read metadata from xml path '%s'", path), e);
+        }
+    }
+
+    protected Geometry createPolygon(double[] lats, double[] lons) {
+        Coordinate[] coords = new Coordinate[lats.length];
+        for (int i = 0; i < lats.length; i++) {
+            double lat = lats[i];
+            double lon = lons[i];
+            coords[i] = new Coordinate(lon, lat);
+        }
+        return new GeometryFactory().createPolygon(coords);
+    }
+
+    double[] getDoubleValues(String path, int count) throws IOException {
+        NodeList nodeSet = getNodeSet(path);
+        double[] angles = new double[count];
+        for (int i = 0; i < angles.length; i++) {
+            angles[i] = Double.parseDouble(nodeSet.item(i).getTextContent());
+        }
+        return angles;
+    }
+
+    protected String getFileName(String key, NodeList fileNodeSet) {
+        for (int i = 0; i < fileNodeSet.getLength(); i++) {
+            String fileName = fileNodeSet.item(i).getTextContent();
+            if (FileUtils.getFilenameWithoutExtension(fileName).endsWith(key)) {
+                return fileName;
+            }
+        }
+        return null;
+    }
+
+    private static Document createXmlDocument(InputStream inputStream) throws IOException {
+        try {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            factory.setNamespaceAware(true);
+            return factory.newDocumentBuilder().parse(inputStream);
+        } catch (ParserConfigurationException | SAXException e) {
+            throw new IOException("Cannot create document from manifest XML file.", e);
+        }
+    }
+
+    // todo - this method is borrowed from ISO8601Converter class in SNAP 10 (snap-core)
+    // todo - when using SNAP 10 this method should be replaced
+    private static ProductData.UTC parseTimeString(String iso8601String) {
+        final TemporalAccessor accessor = EnmapMetadata.FORMATTER.parse(iso8601String);
+        final ZonedDateTime time = ZonedDateTime.from(accessor);
+        final Date date = Date.from(time.toInstant());
+        return ProductData.UTC.create(date, time.get(ChronoField.MICRO_OF_SECOND));
+    }
+
+    private static String getProcessingLevel(XPath xPath, Document xmlDocument) throws IOException {
+        return getNodeContent("/level_X/base/level", xPath, xmlDocument);
     }
 
     private static String getNodeContent(String path, XPath xpath, Document doc) throws IOException {
@@ -474,45 +532,8 @@ public abstract class EnmapMetadata {
         }
     }
 
-    NodeList getNodeSet(String path) throws IOException {
-        try {
-            XPathExpression expr = xpath.compile(path);
-            return (NodeList) expr.evaluate(doc, XPathConstants.NODESET);
-        } catch (XPathExpressionException e) {
-            throw new IOException(String.format("Not able to read metadata from xml path '%s'", path), e);
-        }
-    }
-
-    Geometry createPolygon(double[] lats, double[] lons) {
-        Coordinate[] coords = new Coordinate[lats.length];
-        for (int i = 0; i < lats.length; i++) {
-            double lat = lats[i];
-            double lon = lons[i];
-            coords[i] = new Coordinate(lon, lat);
-        }
-        return new GeometryFactory().createPolygon(coords);
-    }
-
-    double[] getDoubleValues(String path, int count) throws IOException {
-        NodeList nodeSet = getNodeSet(path);
-        double[] angles = new double[count];
-        for (int i = 0; i < angles.length; i++) {
-            angles[i] = Double.parseDouble(nodeSet.item(i).getTextContent());
-        }
-        return angles;
-    }
-
     private double getAngleCenter(String alongOffNadirAngle) throws IOException {
         return Double.parseDouble(getNodeContent("/level_X/specific/" + alongOffNadirAngle + "/center"));
     }
 
-    protected String getFileName(String key, NodeList fileNodeSet) {
-        for (int i = 0; i < fileNodeSet.getLength(); i++) {
-            String fileName = fileNodeSet.item(i).getTextContent();
-            if (FileUtils.getFilenameWithoutExtension(fileName).endsWith(key)) {
-                return fileName;
-            }
-        }
-        return null;
-    }
 }
