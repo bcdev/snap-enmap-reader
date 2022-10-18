@@ -120,16 +120,16 @@ public class EnmapL2AMetadataTest {
 
     @Test
     public void testAngles() throws IOException {
-        assertArrayEquals(new double[]{62.843017, 63.025996, 63.232013, 63.048052}, meta.getSunElevationAngles(), 1.0e-6f);
+        assertArrayEquals(new double[]{62.843017, 63.025996, 63.048052, 63.232013}, meta.getSunElevationAngles(), 1.0e-6f);
         assertEquals(63.038384f, meta.getSunElevationAngleCenter(), 1.0e-6);
 
-        assertArrayEquals(new double[]{148.98072, 149.614311, 149.224083, 148.59262}, meta.getSunAzimuthAngles(), 1.0e-6f);
+        assertArrayEquals(new double[]{148.98072, 149.614311, 148.59262, 149.224083}, meta.getSunAzimuthAngles(), 1.0e-6f);
         assertEquals(149.106702, meta.getSunAzimuthAngleCenter(), 1.0e-6f);
 
-        assertArrayEquals(new double[]{1.27641076292, -1.35358251158, -1.4507597324, 1.17928885285}, meta.getAcrossOffNadirAngles(), 1.0e-6f);
+        assertArrayEquals(new double[]{1.27641076292, -1.35358251158, 1.17928885285, -1.4507597324}, meta.getAcrossOffNadirAngles(), 1.0e-6f);
         assertEquals(-0.0871606570525, meta.getAcrossOffNadirAngleCenter(), 1.0e-6);
 
-        assertArrayEquals(new double[]{-0.0692040225255, -0.0695301149423, -0.167785438271, -0.16870825914}, meta.getAlongOffNadirAngles(), 1.0e-6f);
+        assertArrayEquals(new double[]{-0.0692040225255, -0.0695301149423, -0.16870825914, -0.167785438271}, meta.getAlongOffNadirAngles(), 1.0e-6f);
         assertEquals(-0.11880695872, meta.getAlongOffNadirAngleCenter(), 1.0e-6);
 
         assertArrayEquals(new double[]{14.2906888082, 14.2906888082, 14.2149804324, 14.2149804324}, meta.getSceneAzimuthAngles(), 1.0e-6f);

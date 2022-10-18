@@ -5,9 +5,12 @@ import com.bc.ceres.core.VirtualDir;
 import org.esa.snap.core.dataio.AbstractProductReader;
 import org.esa.snap.core.dataio.ProductIO;
 import org.esa.snap.core.dataio.ProductReader;
+import org.esa.snap.core.dataio.geocoding.*;
+import org.esa.snap.core.dataio.geocoding.forward.TiePointBilinearForward;
+import org.esa.snap.core.dataio.geocoding.inverse.TiePointInverse;
 import org.esa.snap.core.datamodel.*;
-import org.esa.snap.dataio.geotiff.GeoTiffImageReader;
 import org.geotools.referencing.CRS;
+import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
 
@@ -26,10 +29,10 @@ import java.util.TreeMap;
 import java.util.stream.IntStream;
 
 import static org.esa.snap.opt.dataio.enmap.EnmapFileUtils.QUALITY_CLASSES_KEY;
-import static org.esa.snap.opt.dataio.enmap.EnmapFileUtils.SPECTRAL_IMAGE_KEY;
 
 class EnmapProductReader extends AbstractProductReader {
     public static final String CANNOT_READ_PRODUCT_MSG = "Cannot read product";
+    public static final int KM_IN_METERS = 1000;
     private VirtualDir dataDir;
     private SpectralImageReader spectralImageReader;
 
@@ -74,17 +77,18 @@ class EnmapProductReader extends AbstractProductReader {
         addTPG(product, "along_off_nadir", meta.getAlongOffNadirAngles());
     }
 
-    private static void addTPG(Product product, String tpgName, double[] sceneAzimuthAngles) {
+    private static TiePointGrid addTPG(Product product, String tpgName, double[] tpgValue) {
         int gridWidth = 2;
         int gridHeight = 2;
         int gridSamplingX = product.getSceneRasterWidth();
         int gridSamplingY = product.getSceneRasterHeight();
-        float[] tpData = new float[sceneAzimuthAngles.length];
-        IntStream.range(0, sceneAzimuthAngles.length).forEach(i -> tpData[i] = (float) sceneAzimuthAngles[i]);
+        float[] tpData = new float[tpgValue.length];
+        IntStream.range(0, tpgValue.length).forEach(i -> tpData[i] = (float) tpgValue[i]);
         TiePointGrid tpg = new TiePointGrid(tpgName, gridWidth, gridHeight, 0, 0,
                 gridSamplingX, gridSamplingY, tpData, true);
         tpg.setUnit("DEG");
         product.addTiePointGrid(tpg);
+        return tpg;
     }
 
     /* NOTE!
@@ -119,30 +123,85 @@ class EnmapProductReader extends AbstractProductReader {
     }
 
     private void addGeoCoding(Product product, EnmapMetadata meta) throws IOException {
-        String productFormat = meta.getProductType();
-        if (productFormat.endsWith("L2A")) {
-            GeoReferencing geoReferencing = meta.getGeoReferencing();
-            try {
-                String epsgCode = getEPSGCode(geoReferencing.projection);
-                CoordinateReferenceSystem coordinateReferenceSystem = CRS.decode(epsgCode);
-                Dimension dimension = meta.getSceneDimension();
-                double resolution = geoReferencing.resolution;
-                // todo - easting and northing should be provided in metadata but are not in the test data
-                // todo - we need to read it from one of the geotiff files.
+        String procLevel = meta.getProcessingLevel();
+        switch (EnmapMetadata.PROCESSING_LEVEL.valueOf(procLevel)) {
+            case L1B:
+                addTiePointGeoCoding(product, meta);
+                break;
+            case L1C:
+            case L2A:
+                addCrsGeoCoding(product, meta);
+                break;
+        }
+    }
+
+    @Override
+    protected void readBandRasterDataImpl(int sourceOffsetX, int sourceOffsetY, int sourceWidth, int sourceHeight,
+                                          int sourceStepX, int sourceStepY,
+                                          Band destBand, int destOffsetX, int destOffsetY, int destWidth, int destHeight,
+                                          ProductData destBuffer, ProgressMonitor pm) {
+        int[] samples;
+        synchronized (spectralImageReader) {
+            RenderedImage renderedImage = bandImageMap.get(destBand.getName());
+            Raster data = renderedImage.getData(new Rectangle(destOffsetX, destOffsetY, destWidth, destHeight));
+            samples = data.getSamples(destOffsetX, destOffsetY, destWidth, destHeight, 0, (int[]) null);
+        }
+        IntStream.range(0, samples.length).parallel().forEach(i -> destBuffer.setElemIntAt(i, samples[i]));
+
+    }
+
+    @Override
+    public void close() {
+        if (spectralImageReader != null) {
+            spectralImageReader.close();
+        }
+        if (dataDir != null) {
+            dataDir.close();
+        }
+    }
+
+    private void addCrsGeoCoding(Product product, EnmapMetadata meta) throws IOException {
+        GeoReferencing geoReferencing = meta.getGeoReferencing();
+        try {
+            String epsgCode = getEPSGCode(geoReferencing.projection);
+            CoordinateReferenceSystem coordinateReferenceSystem = CRS.decode(epsgCode);
+            Dimension dimension = meta.getSceneDimension();
+            double resolution = geoReferencing.resolution;
+            // todo - easting and northing should be provided in metadata but are not in the test data
+            // todo - we need to read it from one of the geotiff files.
 //                double easting = geoReferencing.easting;
 //                double northing = geoReferencing.northing;
-                Point2D eastingNorthing = getEastingNorthing(meta);
-                if (eastingNorthing != null) {
-                    CrsGeoCoding crsGeoCoding = new CrsGeoCoding(coordinateReferenceSystem,
-                            (int) dimension.getWidth(), (int) dimension.getHeight(),
-                            eastingNorthing.getX(), eastingNorthing.getY(),
-                            resolution, resolution, geoReferencing.refX, geoReferencing.refY);
-                    product.setSceneGeoCoding(crsGeoCoding);
-                }
-            } catch (Exception e) {
-                throw new IOException(CANNOT_READ_PRODUCT_MSG, e);
+            Point2D eastingNorthing = getEastingNorthing(meta);
+            if (eastingNorthing != null) {
+                CrsGeoCoding crsGeoCoding = new CrsGeoCoding(coordinateReferenceSystem,
+                        (int) dimension.getWidth(), (int) dimension.getHeight(),
+                        eastingNorthing.getX(), eastingNorthing.getY(),
+                        resolution, resolution, geoReferencing.refX, geoReferencing.refY);
+                product.setSceneGeoCoding(crsGeoCoding);
             }
+        } catch (Exception e) {
+            throw new IOException(CANNOT_READ_PRODUCT_MSG, e);
         }
+    }
+
+    private static void addTiePointGeoCoding(Product product, EnmapMetadata meta) throws IOException {
+        String lonName = "longitude";
+        String latName = "latitude";
+        double[] cornerLatitudes = meta.getCornerLatitudes();
+        double[] cornerLongitudes = meta.getCornerLongitudes();
+        addTPG(product, latName, cornerLatitudes);
+        TiePointGrid lonGrid = addTPG(product, lonName, cornerLongitudes);
+        double pixelSizeKm = meta.getPixelSize() / KM_IN_METERS;
+        GeoRaster geoRaster = new GeoRaster(cornerLongitudes, cornerLatitudes,
+                lonName, latName, lonGrid.getGridWidth(), lonGrid.getGridHeight(),
+                product.getSceneRasterWidth(), product.getSceneRasterHeight(), pixelSizeKm,
+                lonGrid.getOffsetX(), lonGrid.getOffsetY(),
+                lonGrid.getSubSamplingX(), lonGrid.getSubSamplingY());
+        ComponentGeoCoding sceneGeoCoding = new ComponentGeoCoding(geoRaster,
+                ComponentFactory.getForward(TiePointBilinearForward.KEY),
+                ComponentFactory.getInverse(TiePointInverse.KEY), GeoChecks.ANTIMERIDIAN, DefaultGeographicCRS.WGS84);
+        sceneGeoCoding.initialize();
+        product.setSceneGeoCoding(sceneGeoCoding);
     }
 
     private Point2D getEastingNorthing(EnmapMetadata meta) throws IOException {
@@ -191,29 +250,5 @@ class EnmapProductReader extends AbstractProductReader {
         return first.orElseThrow(() -> new IOException("Metadata file not found"));
     }
 
-    @Override
-    protected void readBandRasterDataImpl(int sourceOffsetX, int sourceOffsetY, int sourceWidth, int sourceHeight,
-                                          int sourceStepX, int sourceStepY,
-                                          Band destBand, int destOffsetX, int destOffsetY, int destWidth, int destHeight,
-                                          ProductData destBuffer, ProgressMonitor pm) throws IOException {
-        int[] samples;
-        synchronized (spectralImageReader) {
-            RenderedImage renderedImage = bandImageMap.get(destBand.getName());
-            Raster data = renderedImage.getData(new Rectangle(destOffsetX, destOffsetY, destWidth, destHeight));
-            samples = data.getSamples(destOffsetX, destOffsetY, destWidth, destHeight, 0, (int[]) null);
-        }
-        IntStream.range(0, samples.length).parallel().forEach(i -> destBuffer.setElemIntAt(i, samples[i]));
-
-    }
-
-    @Override
-    public void close() throws IOException {
-        if (spectralImageReader != null) {
-            spectralImageReader.close();
-        }
-        if (dataDir != null) {
-            dataDir.close();
-        }
-    }
 
 }

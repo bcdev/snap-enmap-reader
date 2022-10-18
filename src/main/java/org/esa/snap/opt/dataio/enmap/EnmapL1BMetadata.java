@@ -9,9 +9,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-class EnmapL1BMetadataImpl extends EnmapMetadata {
+class EnmapL1BMetadata extends EnmapMetadata {
 
-    EnmapL1BMetadataImpl(Document doc, XPath xPath) {
+    EnmapL1BMetadata(Document doc, XPath xPath) {
         super(doc, xPath);
     }
 
@@ -20,6 +20,11 @@ class EnmapL1BMetadataImpl extends EnmapMetadata {
         int width = Integer.parseInt(getNodeContent("/level_X/specific/widthOfScene"));
         int height = Integer.parseInt(getNodeContent("/level_X/specific/heightOfScene"));
         return new Dimension(width, height);
+    }
+
+    @Override
+    public double getPixelSize() throws IOException {
+        return Integer.parseInt(getNodeContent("/level_X/specific/pixelSize"));
     }
 
     @Override

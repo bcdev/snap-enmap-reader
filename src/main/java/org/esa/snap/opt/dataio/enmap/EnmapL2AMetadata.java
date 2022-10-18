@@ -10,9 +10,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-class EnmapL2AMetadataImpl extends EnmapMetadata {
+class EnmapL2AMetadata extends EnmapMetadata {
 
-    EnmapL2AMetadataImpl(Document doc, XPath xPath) {
+    EnmapL2AMetadata(Document doc, XPath xPath) {
         super(doc, xPath);
     }
 
@@ -21,6 +21,11 @@ class EnmapL2AMetadataImpl extends EnmapMetadata {
         int width = Integer.parseInt(getNodeContent("/level_X/specific/widthOfOrthoScene"));
         int height = Integer.parseInt(getNodeContent("/level_X/specific/heightOfOrthoScene"));
         return new Dimension(width, height);
+    }
+
+    @Override
+    public double getPixelSize() throws IOException {
+        return Integer.parseInt(getNodeContent("/level_X/specific/pixelSizeOfOrthoScene"));
     }
 
     public Geometry getSpatialCoverage() throws IOException {

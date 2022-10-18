@@ -22,6 +22,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
 
@@ -58,11 +59,11 @@ public abstract class EnmapMetadata {
         String processingLevel = getProcessingLevel(xPath, xmlDocument);
         switch (PROCESSING_LEVEL.valueOf(processingLevel)) {
             case L1B:
-                return new EnmapL1BMetadataImpl(xmlDocument, xPath);
+                return new EnmapL1BMetadata(xmlDocument, xPath);
             case L1C:
-                return new EnmapL1CMetadataImpl(xmlDocument, xPath);
+                return new EnmapL1CMetadata(xmlDocument, xPath);
             case L2A:
-                return new EnmapL2AMetadataImpl(xmlDocument, xPath);
+                return new EnmapL2AMetadata(xmlDocument, xPath);
             default:
                 throw new IOException(String.format("Unknown product level '%s'", processingLevel));
         }
@@ -184,12 +185,21 @@ public abstract class EnmapMetadata {
     }
 
     /**
-     * The widht and height of the scene as dimension object
+     * The width and height of the scene as dimension object
      *
      * @return the dimension of the scene
      * @throws IOException in case the metadata XML file could not be read
      */
-    abstract Dimension getSceneDimension() throws IOException;
+    public abstract Dimension getSceneDimension() throws IOException;
+
+    /**
+     * returns the size of a pixel
+     *
+     * @return the pixel size
+     * @throws IOException in case the metadata XML file could not be read
+     */
+    public abstract double getPixelSize() throws IOException;
+
 
     /**
      * Returns the spatial coverage of the scene raster in WGS84 coordinates for the satellite raster (Level L1B)
@@ -200,11 +210,37 @@ public abstract class EnmapMetadata {
     public Geometry getSpatialCoverage() throws IOException {
         double[] lats = getDoubleValues("/level_X/base/spatialCoverage/boundingPolygon/*/latitude", 5);
         double[] lons = getDoubleValues("/level_X/base/spatialCoverage/boundingPolygon/*/longitude", 5);
-        // in L2A metadata the 5th coordinate is not equal to the first. The precision is higher.
-        lats[4] = lats[0];
-        lons[4] = lons[0];
-
         return createPolygon(lats, lons);
+    }
+
+    /**
+     * returns the latitude values of the 4 corners in the order upper-left, upper-right, lower-left and lower-right.
+     *
+     * @return the 4 latitude values
+     * @throws IOException in case the metadata XML file could not be read
+     */
+    public double[] getCornerLatitudes() throws IOException {
+        double[] lats = new double[4];
+        lats[0] = Double.parseDouble(getNodeContent("/level_X/base/spatialCoverage/boundingPolygon/point/frame[text()='upper_left']/../latitude"));
+        lats[1] = Double.parseDouble(getNodeContent("/level_X/base/spatialCoverage/boundingPolygon/point/frame[text()='upper_right']/../latitude"));
+        lats[2] = Double.parseDouble(getNodeContent("/level_X/base/spatialCoverage/boundingPolygon/point/frame[text()='lower_left']/../latitude"));
+        lats[3] = Double.parseDouble(getNodeContent("/level_X/base/spatialCoverage/boundingPolygon/point/frame[text()='lower_right']/../latitude"));
+        return lats;
+    }
+
+    /**
+     * returns the longitude values of the 4 corners in the order upper-left, upper-right, lower-left and lower-right.
+     *
+     * @return the 4 longitude values
+     * @throws IOException in case the metadata XML file could not be read
+     */
+    public double[] getCornerLongitudes() throws IOException {
+        double[] lons = new double[4];
+        lons[0] = Double.parseDouble(getNodeContent("/level_X/base/spatialCoverage/boundingPolygon/point/frame[text()='upper_left']/../longitude"));
+        lons[1] = Double.parseDouble(getNodeContent("/level_X/base/spatialCoverage/boundingPolygon/point/frame[text()='upper_right']/../longitude"));
+        lons[2] = Double.parseDouble(getNodeContent("/level_X/base/spatialCoverage/boundingPolygon/point/frame[text()='lower_left']/../longitude"));
+        lons[3] = Double.parseDouble(getNodeContent("/level_X/base/spatialCoverage/boundingPolygon/point/frame[text()='lower_right']/../longitude"));
+        return lons;
     }
 
     /**
@@ -237,13 +273,19 @@ public abstract class EnmapMetadata {
 
 
     /**
-     * returns the sun elevation angles at the four corner points of the scene
+     * returns the sun elevation angles at the four corner points of the scene in the order
+     * upper-left, upper-right, lower-left and lower-right
      *
      * @return an array containing the sun elevation angles at the four corner points
      * @throws IOException in case the metadata XML file could not be read
      */
     public double[] getSunElevationAngles() throws IOException {
-        return getDoubleValues("/level_X/specific/sunElevationAngle/*", 4);
+        double[] angles = new double[4];
+        angles[0] = Double.parseDouble(getNodeContent("/level_X/specific/sunElevationAngle/upper_left"));
+        angles[1] = Double.parseDouble(getNodeContent("/level_X/specific/sunElevationAngle/upper_right"));
+        angles[2] = Double.parseDouble(getNodeContent("/level_X/specific/sunElevationAngle/lower_left"));
+        angles[3] = Double.parseDouble(getNodeContent("/level_X/specific/sunElevationAngle/lower_right"));
+        return angles;
     }
 
     /**
@@ -257,13 +299,19 @@ public abstract class EnmapMetadata {
     }
 
     /**
-     * the sun azimuth angles at the four corner points of the scene
+     * the sun azimuth angles at the four corner points of the scene in the order upper-left,
+     * upper-right, lower-left and lower-right
      *
      * @return an array containing the sun azimuth angles at the four corner points
      * @throws IOException in case the metadata XML file could not be read
      */
     public double[] getSunAzimuthAngles() throws IOException {
-        return getDoubleValues("/level_X/specific/sunAzimuthAngle/*", 4);
+        double[] angles = new double[4];
+        angles[0] = Double.parseDouble(getNodeContent("/level_X/specific/sunAzimuthAngle/upper_left"));
+        angles[1] = Double.parseDouble(getNodeContent("/level_X/specific/sunAzimuthAngle/upper_right"));
+        angles[2] = Double.parseDouble(getNodeContent("/level_X/specific/sunAzimuthAngle/lower_left"));
+        angles[3] = Double.parseDouble(getNodeContent("/level_X/specific/sunAzimuthAngle/lower_right"));
+        return angles;
     }
 
     /**
@@ -277,13 +325,19 @@ public abstract class EnmapMetadata {
     }
 
     /**
-     * The across off-nadir angles at the four corner points of the scene
+     * The across off-nadir angles at the four corner points of the scene in the order upper-left,
+     * upper-right, lower-left and lower-right
      *
      * @return an array containing the across off-nadir angles at the four corner points
      * @throws IOException in case the metadata XML file could not be read
      */
     public double[] getAcrossOffNadirAngles() throws IOException {
-        return getDoubleValues("/level_X/specific/acrossOffNadirAngle/*", 4);
+        double[] angles = new double[4];
+        angles[0] = Double.parseDouble(getNodeContent("/level_X/specific/acrossOffNadirAngle/upper_left"));
+        angles[1] = Double.parseDouble(getNodeContent("/level_X/specific/acrossOffNadirAngle/upper_right"));
+        angles[2] = Double.parseDouble(getNodeContent("/level_X/specific/acrossOffNadirAngle/lower_left"));
+        angles[3] = Double.parseDouble(getNodeContent("/level_X/specific/acrossOffNadirAngle/lower_right"));
+        return angles;
     }
 
     /**
@@ -297,13 +351,19 @@ public abstract class EnmapMetadata {
     }
 
     /**
-     * The along off-nadir angles at the four corner points of the scene
+     * The along off-nadir angles at the four corner points of the scene in the order upper-left,
+     * upper-right, lower-left and lower-right
      *
      * @return an array containing the along off-nadir angles at the four corner points
      * @throws IOException in case the metadata XML file could not be read
      */
     public double[] getAlongOffNadirAngles() throws IOException {
-        return getDoubleValues("/level_X/specific/alongOffNadirAngle/*", 4);
+        double[] angles = new double[4];
+        angles[0] = Double.parseDouble(getNodeContent("/level_X/specific/alongOffNadirAngle/upper_left"));
+        angles[1] = Double.parseDouble(getNodeContent("/level_X/specific/alongOffNadirAngle/upper_right"));
+        angles[2] = Double.parseDouble(getNodeContent("/level_X/specific/alongOffNadirAngle/lower_left"));
+        angles[3] = Double.parseDouble(getNodeContent("/level_X/specific/alongOffNadirAngle/lower_right"));
+        return angles;
     }
 
     /**
@@ -317,13 +377,19 @@ public abstract class EnmapMetadata {
     }
 
     /**
-     * The scene azimuth angles at the four corner points of the scene
+     * The scene azimuth angles at the four corner points of the scene in the order
+     * upper-left, upper-right, lower-left and lower-right
      *
      * @return an array containing the scene azimuth angles at the four corner points
      * @throws IOException in case the metadata XML file could not be read
      */
     public double[] getSceneAzimuthAngles() throws IOException {
-        return getDoubleValues("/level_X/specific/sceneAzimuthAngle/*", 4);
+        double[] angles = new double[4];
+        angles[0] = Double.parseDouble(getNodeContent("/level_X/specific/sceneAzimuthAngle/upper_left"));
+        angles[1] = Double.parseDouble(getNodeContent("/level_X/specific/sceneAzimuthAngle/upper_right"));
+        angles[2] = Double.parseDouble(getNodeContent("/level_X/specific/sceneAzimuthAngle/lower_left"));
+        angles[3] = Double.parseDouble(getNodeContent("/level_X/specific/sceneAzimuthAngle/lower_right"));
+        return angles;
     }
 
     /**
