@@ -19,7 +19,9 @@ public class EnmapProductReaderPlugIn implements ProductReaderPlugIn {
     public static final String DESCRIPTION = "EnMAP L1B/L1C/L2A Product Reader";
     private final String[] FORMAT_NAMES = new String[]{"EnMAP L1B/L1C/L2A"};
 
-
+    static {
+        EnMapRgbProfiles.registerRGBProfiles();
+    }
     @Override
     public DecodeQualification getDecodeQualification(Object o) {
         try {
