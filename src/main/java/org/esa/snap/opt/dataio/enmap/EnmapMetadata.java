@@ -91,8 +91,8 @@ public abstract class EnmapMetadata {
      * @return the processing level
      * @throws IOException in case the metadata XML file could not be read
      */
-    public String getProcessingLevel() throws IOException {
-        return getProcessingLevel(xpath, doc);
+    public PROCESSING_LEVEL getProcessingLevel() throws IOException {
+        return PROCESSING_LEVEL.valueOf(getProcessingLevel(xpath, doc));
     }
 
     /**
@@ -432,6 +432,14 @@ public abstract class EnmapMetadata {
      */
     public float getSpectralBackgroundValue() throws IOException {
         return Float.parseFloat(getNodeContent("/level_X/specific/backgroundValue"));
+    }
+
+    public int getNumVnirBands() throws IOException {
+        return Integer.parseInt(getNodeContent("/level_X/specific/vnirProductQuality/numChannelsExpected"));
+    }
+
+    public int getNumSwirBands() throws IOException {
+        return Integer.parseInt(getNodeContent("/level_X/specific/swirProductQuality/numChannelsExpected"));
     }
 
     /**

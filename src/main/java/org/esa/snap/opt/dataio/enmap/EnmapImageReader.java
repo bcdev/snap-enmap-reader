@@ -7,21 +7,28 @@ import java.awt.*;
 import java.awt.image.RenderedImage;
 import java.io.IOException;
 
-interface SpectralImageReader {
-    static SpectralImageReader create(VirtualDir dataDir, EnmapMetadata meta) throws IOException {
-        String processingLevel = meta.getProcessingLevel();
-        switch (EnmapMetadata.PROCESSING_LEVEL.valueOf(processingLevel)) {
-            case L1B:
-                return new L1BSpectralImageReader(dataDir, meta);
-            case L1C:
-                return new L1CSpectralImageReader(dataDir, meta);
-            case L2A:
-                return new L2ASpectralImageReader(dataDir, meta);
-            default:
-                throw new IOException(String.format("Unknown product level '%s'", processingLevel));
-        }
+import static org.esa.snap.opt.dataio.enmap.EnmapFileUtils.*;
+
+interface EnmapImageReader {
+    static EnmapImageReader createSpectralReader(VirtualDir dataDir, EnmapMetadata meta) throws IOException {
+        return createEnmapImageReader(dataDir, meta, SPECTRAL_IMAGE_VNIR_KEY, SPECTRAL_IMAGE_SWIR_KEY, SPECTRAL_IMAGE_KEY);
     }
 
+    static EnmapImageReader createPixelMaskReader(VirtualDir dataDir, EnmapMetadata meta) throws IOException {
+        return createEnmapImageReader(dataDir, meta, QUALITY_PIXELMASK_VNIR_KEY, QUALITY_PIXELMASK_SWIR_KEY, QUALITY_PIXELMASK_KEY);
+    }
+
+    static EnmapImageReader createEnmapImageReader(VirtualDir dataDir, EnmapMetadata meta, String spectralImageVnirKey, String spectralImageSwirKey, String spectralImageKey) throws IOException {
+        switch (meta.getProcessingLevel()) {
+            case L1B:
+                return new L1BImageReader(dataDir, meta, spectralImageVnirKey, spectralImageSwirKey);
+            case L1C:
+            case L2A:
+                return new OrthoImageReader(dataDir, meta, spectralImageKey);
+            default:
+                throw new IOException(String.format("Unknown product level '%s'", meta.getProcessingLevel()));
+        }
+    }
 
     static GeoTiffImageReader createImageReader(VirtualDir dataDir, String fileName) throws IOException {
         final GeoTiffImageReader imageReader;
@@ -42,6 +49,13 @@ interface SpectralImageReader {
      */
     Dimension getTileDimension() throws IOException;
 
+    /**
+     * returns the number of images provided by this reader
+     *
+     * @return the number of images
+     * @throws IOException in case the information could not be retrieved from the source
+     */
+    int getNumImages() throws IOException;
     /**
      * returns the spectral image at the specified index (zero based)
      *
