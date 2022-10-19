@@ -6,7 +6,10 @@ import it.geosolutions.imageioimpl.plugins.tiff.TIFFRenderedImage;
 import org.esa.snap.core.dataio.AbstractProductReader;
 import org.esa.snap.core.dataio.ProductIO;
 import org.esa.snap.core.dataio.ProductReader;
-import org.esa.snap.core.dataio.geocoding.*;
+import org.esa.snap.core.dataio.geocoding.ComponentFactory;
+import org.esa.snap.core.dataio.geocoding.ComponentGeoCoding;
+import org.esa.snap.core.dataio.geocoding.GeoChecks;
+import org.esa.snap.core.dataio.geocoding.GeoRaster;
 import org.esa.snap.core.dataio.geocoding.forward.TiePointBilinearForward;
 import org.esa.snap.core.dataio.geocoding.inverse.TiePointInverse;
 import org.esa.snap.core.datamodel.*;
@@ -24,8 +27,8 @@ import java.awt.image.RenderedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.stream.IntStream;
 
 import static org.esa.snap.opt.dataio.enmap.EnmapFileUtils.*;
@@ -78,11 +81,15 @@ class EnmapProductReader extends AbstractProductReader {
         addSpectralBands(product, meta);
         addTiePointGrids(product, meta);
         addQualityLayers(product, meta);
-//        addMetadata();
+        addMetadata(product, meta);
 
         product.setAutoGrouping("band:PIXELMASK:QUALITY");
 
         return product;
+    }
+
+    private void addMetadata(Product product, EnmapMetadata meta) throws IOException {
+        meta.insertInto(product.getMetadataRoot());
     }
 
     private void addQualityLayers(Product product, EnmapMetadata meta) throws IOException {
@@ -343,12 +350,12 @@ class EnmapProductReader extends AbstractProductReader {
 
         spectralImageReader = EnmapImageReader.createSpectralReader(dataDir, meta);
         product.setPreferredTileSize(spectralImageReader.getTileDimension());
-
+        int[] spectralIndices = joinArrays(meta.getVnirIndices(), meta.getSwirIndices());
         int dataType = ProductData.TYPE_INT16;
         for (int i = 0; i < spectralImageReader.getNumImages(); i++) {
-            String bandName = String.format("band_%03d", i + 1);
+            String bandName = String.format("band_%03d", spectralIndices[i]);
             Band band = new Band(bandName, dataType, product.getSceneRasterWidth(), product.getSceneRasterHeight());
-            band.setSpectralBandIndex(i);
+            band.setSpectralBandIndex(spectralIndices[i] - 1);
             band.setSpectralWavelength(meta.getCentralWavelength(i));
             band.setSpectralBandwidth(meta.getBandwidth(i));
             band.setDescription(meta.getSpectralBandDescription(i));
@@ -361,6 +368,10 @@ class EnmapProductReader extends AbstractProductReader {
             product.addBand(band);
         }
 
+    }
+
+    private int[] joinArrays(int[] vnirIndices, int[] swirIndices) {
+        return IntStream.concat(Arrays.stream(vnirIndices), Arrays.stream(swirIndices)).toArray();
     }
 
     private void addGeoCoding(Product product, EnmapMetadata meta) throws IOException {

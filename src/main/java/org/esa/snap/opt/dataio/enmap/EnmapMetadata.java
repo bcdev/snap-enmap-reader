@@ -1,13 +1,14 @@
 package org.esa.snap.opt.dataio.enmap;
 
+import org.esa.snap.core.datamodel.MetadataAttribute;
+import org.esa.snap.core.datamodel.MetadataElement;
 import org.esa.snap.core.datamodel.ProductData;
+import org.esa.snap.core.util.StringUtils;
 import org.esa.snap.core.util.io.FileUtils;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -20,8 +21,10 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
+import java.util.stream.IntStream;
 
 public abstract class EnmapMetadata {
     static final String DATETIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSSSSSX";
@@ -52,6 +55,19 @@ public abstract class EnmapMetadata {
                 return new EnmapL2AMetadata(xmlDocument, xPath);
             default:
                 throw new IOException(String.format("Unknown product level '%s'", processingLevel));
+        }
+    }
+
+    /**
+     * Converts and inserts the XML metadata into the product metadata element
+     *
+     * @param elem the element to contain the XML metadata
+     */
+    public void insertInto(MetadataElement elem) throws IOException {
+        // start with the child Nodes and skip the start element 'level_X'
+        NodeList childNodes = getNodeSet("/level_X/*");
+        for (int i = 0; i < childNodes.getLength(); i++) {
+            addTo(childNodes.item(i), elem);
         }
     }
 
@@ -434,12 +450,48 @@ public abstract class EnmapMetadata {
         return Float.parseFloat(getNodeContent("/level_X/specific/backgroundValue"));
     }
 
+    /**
+     * returns the number of SWIR bands
+     *
+     * @return the number of SWIR bands
+     * @throws IOException in case the metadata XML file could not be read
+     */
     public int getNumVnirBands() throws IOException {
         return Integer.parseInt(getNodeContent("/level_X/specific/vnirProductQuality/numChannelsExpected"));
     }
 
+    /**
+     * returns the indices (one based) of VNIR bands
+     *
+     * @return the indices of the VNIR bands
+     * @throws IOException in case the metadata XML file could not be read
+     */
+    public int[] getVnirIndices() throws IOException {
+        String csv = getNodeContent("/level_X/specific/vnirProductQuality/expectedChannelsList");
+        String[] strIndices = StringUtils.csvToArray(csv);
+        return Arrays.stream(strIndices).mapToInt(Integer::parseInt).toArray();
+    }
+
+    /**
+     * returns the number of SWIR bands
+     *
+     * @return the number of SWIR bands
+     * @throws IOException in case the metadata XML file could not be read
+     */
     public int getNumSwirBands() throws IOException {
         return Integer.parseInt(getNodeContent("/level_X/specific/swirProductQuality/numChannelsExpected"));
+    }
+
+    /**
+     * returns the indices (one based) of SWIR bands
+     *
+     * @return the indices of the SWIR bands
+     * @throws IOException in case the metadata XML file could not be read
+     */
+    public int[] getSwirIndices() throws IOException {
+        String csv = getNodeContent("/level_X/specific/swirProductQuality/expectedChannelsList");
+        String[] strIndices = StringUtils.csvToArray(csv);
+        return Arrays.stream(strIndices).mapToInt(Integer::parseInt).toArray();
     }
 
     /**
@@ -531,6 +583,10 @@ public abstract class EnmapMetadata {
         }
     }
 
+    private Node getNode(String path) throws IOException {
+        return getNode(path, xpath, doc);
+    }
+
     private static Node getNode(String path, XPath xpath, Document doc) throws IOException {
         try {
             XPathExpression expr = xpath.compile(path);
@@ -542,6 +598,29 @@ public abstract class EnmapMetadata {
 
     private double getAngleCenter(String alongOffNadirAngle) throws IOException {
         return Double.parseDouble(getNodeContent("/level_X/specific/" + alongOffNadirAngle + "/center"));
+    }
+
+    private static void addTo(Node node, MetadataElement elem) {
+        MetadataElement subElement = new MetadataElement(node.getNodeName());
+        elem.addElement(subElement);
+        NodeList childNodes = node.getChildNodes();
+        for (int i = 0; i < childNodes.getLength(); i++) {
+            Node subNode = childNodes.item(i);
+            if (Node.ELEMENT_NODE == subNode.getNodeType()) {
+                boolean hasChildren = hasChildElements(subNode);
+                if (hasChildren) {
+                    addTo(subNode, subElement);
+                } else {
+                    subElement.addAttribute(new MetadataAttribute(subNode.getNodeName(), ProductData.createInstance(subNode.getTextContent()), true));
+                }
+            }
+        }
+
+    }
+
+    private static boolean hasChildElements(Node node) {
+        NodeList childNodes = node.getChildNodes();
+        return IntStream.range(0, childNodes.getLength()).anyMatch(i -> Node.ELEMENT_NODE == childNodes.item(i).getNodeType());
     }
 
 }
