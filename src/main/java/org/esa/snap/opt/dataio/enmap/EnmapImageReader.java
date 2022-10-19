@@ -31,14 +31,12 @@ interface EnmapImageReader {
     }
 
     static GeoTiffImageReader createImageReader(VirtualDir dataDir, String fileName) throws IOException {
-        final GeoTiffImageReader imageReader;
         try {
-            imageReader = new GeoTiffImageReader(dataDir.getInputStream(fileName), () -> {
+            return new GeoTiffImageReader(getInputStream(dataDir, fileName), () -> {
             });
         } catch (IllegalStateException ise) {
             throw new IOException("Could not create spectral data reader.", ise);
         }
-        return imageReader;
     }
 
     /**
@@ -56,6 +54,7 @@ interface EnmapImageReader {
      * @throws IOException in case the information could not be retrieved from the source
      */
     int getNumImages() throws IOException;
+
     /**
      * returns the spectral image at the specified index (zero based)
      *

@@ -1,5 +1,10 @@
 package org.esa.snap.opt.dataio.enmap;
 
+import com.bc.ceres.core.VirtualDir;
+import org.esa.snap.core.util.io.FileUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.regex.Pattern;
 
@@ -80,5 +85,14 @@ public class EnmapFileUtils {
 
     static boolean isZip(Path path) {
         return path.getFileName().toString().toLowerCase().endsWith("zip");
+    }
+
+    public static InputStream getInputStream(VirtualDir dataDir, String fileName) throws IOException {
+        String relPath = fileName;
+        if (dataDir.isArchive()) {
+            String innerDirectory = dataDir.getBaseFile().toPath().getFileName().toString();
+            relPath = FileUtils.getFilenameWithoutExtension(innerDirectory) + "/" + fileName;
+        }
+        return dataDir.getInputStream(relPath);
     }
 }

@@ -305,8 +305,7 @@ class EnmapProductReader extends AbstractProductReader {
 
     private TIFFRenderedImage getTiffRenderedImage(String qualityKey, EnmapMetadata meta) throws IOException {
         Map<String, String> fileNameMap = meta.getFileNameMap();
-        String dataFileName = fileNameMap.get(qualityKey);
-        InputStream inputStream = dataDir.getInputStream(dataFileName);
+        InputStream inputStream = getInputStream(dataDir, fileNameMap.get(qualityKey));
         final GeoTiffImageReader imageReader;
         try {
             imageReader = new GeoTiffImageReader(inputStream, () -> {
