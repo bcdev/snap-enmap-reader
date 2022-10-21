@@ -8,7 +8,7 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.regex.Pattern;
 
-public class EnmapFileUtils {
+class EnmapFileUtils {
     private static final String L1B_BASEFILENAME = "ENMAP\\d{2}-____L1B-DT.{9}_\\d{8}T\\d{6}Z_.{3}_V.{6}_\\d{8}T\\d{6}Z";
     private static final String L1C_BASEFILENAME = "ENMAP\\d{2}-____L1C-DT.{9}_\\d{8}T\\d{6}Z_.{3}_V.{6}_\\d{8}T\\d{6}Z";
     private static final String L2A_BASEFILENAME = "ENMAP\\d{2}-____L2A-DT.{9}_\\d{8}T\\d{6}Z_.{3}_V.{6}_\\d{8}T\\d{6}Z";

@@ -26,7 +26,7 @@ import java.util.Date;
 import java.util.Map;
 import java.util.stream.IntStream;
 
-public abstract class EnmapMetadata {
+abstract class EnmapMetadata {
     static final String DATETIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSSSSSX";
     static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(DATETIME_PATTERN);
 

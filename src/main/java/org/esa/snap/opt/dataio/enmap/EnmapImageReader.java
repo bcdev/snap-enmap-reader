@@ -11,24 +11,49 @@ import static org.esa.snap.opt.dataio.enmap.EnmapFileUtils.*;
 
 interface EnmapImageReader {
     static EnmapImageReader createSpectralReader(VirtualDir dataDir, EnmapMetadata meta) throws IOException {
-        return createEnmapImageReader(dataDir, meta, SPECTRAL_IMAGE_VNIR_KEY, SPECTRAL_IMAGE_SWIR_KEY, SPECTRAL_IMAGE_KEY);
-    }
-
-    static EnmapImageReader createPixelMaskReader(VirtualDir dataDir, EnmapMetadata meta) throws IOException {
-        return createEnmapImageReader(dataDir, meta, QUALITY_PIXELMASK_VNIR_KEY, QUALITY_PIXELMASK_SWIR_KEY, QUALITY_PIXELMASK_KEY);
-    }
-
-    static EnmapImageReader createEnmapImageReader(VirtualDir dataDir, EnmapMetadata meta, String spectralImageVnirKey, String spectralImageSwirKey, String spectralImageKey) throws IOException {
+        // todo - In Java 9 this can be replaced by createEnmapImageReader() (see below)
+        // todo - but in Java 8 private static is not allowed yet.
         switch (meta.getProcessingLevel()) {
             case L1B:
-                return new L1BImageReader(dataDir, meta, spectralImageVnirKey, spectralImageSwirKey);
+                return new L1BSpectrumImageReader(dataDir, meta, SPECTRAL_IMAGE_VNIR_KEY, SPECTRAL_IMAGE_SWIR_KEY);
             case L1C:
             case L2A:
-                return new OrthoImageReader(dataDir, meta, spectralImageKey);
+                return new GenericImageReader(dataDir, meta, SPECTRAL_IMAGE_KEY);
             default:
                 throw new IOException(String.format("Unknown product level '%s'", meta.getProcessingLevel()));
         }
     }
+
+    static EnmapImageReader createPixelMaskReader(VirtualDir dataDir, EnmapMetadata meta) throws IOException {
+        // todo - In Java 9 this can be replaced by createEnmapImageReader() (see below)
+        // todo - but in Java 8 private static is not allowed yet.
+        switch (meta.getProcessingLevel()) {
+            case L1B:
+                return new L1BSpectrumImageReader(dataDir, meta, QUALITY_PIXELMASK_VNIR_KEY, QUALITY_PIXELMASK_SWIR_KEY);
+            case L1C:
+            case L2A:
+                return new GenericImageReader(dataDir, meta, QUALITY_PIXELMASK_KEY);
+            default:
+                throw new IOException(String.format("Unknown product level '%s'", meta.getProcessingLevel()));
+        }
+    }
+
+    static EnmapImageReader createQualityReader(VirtualDir dataDir, EnmapMetadata meta, String qualityKey) throws IOException {
+        return new GenericImageReader(dataDir, meta, qualityKey);
+    }
+
+    // todo - use this with Java 9
+//    private static EnmapImageReader createEnmapImageReader(VirtualDir dataDir, EnmapMetadata meta, String spectralImageVnirKey, String spectralImageSwirKey, String spectralImageKey) throws IOException {
+//        switch (meta.getProcessingLevel()) {
+//            case L1B:
+//                return new L1BSpectrumImageReader(dataDir, meta, spectralImageVnirKey, spectralImageSwirKey);
+//            case L1C:
+//            case L2A:
+//                return new GenericImageReader(dataDir, meta, spectralImageKey);
+//            default:
+//                throw new IOException(String.format("Unknown product level '%s'", meta.getProcessingLevel()));
+//        }
+//    }
 
     static GeoTiffImageReader createImageReader(VirtualDir dataDir, String fileName) throws IOException {
         try {

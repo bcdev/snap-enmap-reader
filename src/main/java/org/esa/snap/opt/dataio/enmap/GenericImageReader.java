@@ -10,11 +10,11 @@ import java.awt.image.RenderedImage;
 import java.io.IOException;
 import java.util.Map;
 
-public class OrthoImageReader implements EnmapImageReader {
+class GenericImageReader implements EnmapImageReader {
 
     private final GeoTiffImageReader tiffImageReader;
 
-    public OrthoImageReader(VirtualDir dataDir, EnmapMetadata meta, String imageKey) throws IOException {
+    public GenericImageReader(VirtualDir dataDir, EnmapMetadata meta, String imageKey) throws IOException {
         Map<String, String> fileNameMap = meta.getFileNameMap();
         tiffImageReader = EnmapImageReader.createImageReader(dataDir, fileNameMap.get(imageKey));
     }

@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class EnmapOrthoMetadata  extends EnmapMetadata{
+abstract class EnmapOrthoMetadata  extends EnmapMetadata{
 
     EnmapOrthoMetadata(Document doc, XPath xPath) {
         super(doc, xPath);

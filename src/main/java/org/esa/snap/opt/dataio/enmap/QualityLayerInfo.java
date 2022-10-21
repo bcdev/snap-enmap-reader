@@ -9,7 +9,7 @@ import java.awt.*;
 
 import static org.esa.snap.opt.dataio.enmap.EnmapFileUtils.*;
 
-public class QualityLayerInfo {
+class QualityLayerInfo {
     static QualityLayerInfo QL_CLASSES_LAND = create("Land", "Classified as land",
             QUALITY_CLASSES_KEY, 0b11, 0b01, Color.GREEN);
     static QualityLayerInfo QL_CLASSES_WATER = create("Water", "Classified as water",

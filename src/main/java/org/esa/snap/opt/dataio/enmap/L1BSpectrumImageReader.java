@@ -11,12 +11,12 @@ import java.awt.image.RenderedImage;
 import java.io.IOException;
 import java.util.Map;
 
-public class L1BImageReader implements EnmapImageReader {
+class L1BSpectrumImageReader implements EnmapImageReader {
 
     private final GeoTiffImageReader vnirImageReader;
     private final GeoTiffImageReader swirImageReader;
 
-    public L1BImageReader(VirtualDir dataDir, EnmapMetadata meta, String vnirImageKey, String swirImageKey) throws IOException {
+    public L1BSpectrumImageReader(VirtualDir dataDir, EnmapMetadata meta, String vnirImageKey, String swirImageKey) throws IOException {
         Map<String, String> fileNameMap = meta.getFileNameMap();
         vnirImageReader = EnmapImageReader.createImageReader(dataDir, fileNameMap.get(vnirImageKey));
         swirImageReader = EnmapImageReader.createImageReader(dataDir, fileNameMap.get(swirImageKey));
