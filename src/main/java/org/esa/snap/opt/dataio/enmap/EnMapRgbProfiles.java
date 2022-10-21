@@ -10,9 +10,9 @@ class EnMapRgbProfiles {
         RGBImageProfileManager manager = RGBImageProfileManager.getInstance();
         manager.addProfile(new RGBImageProfile("EnMAP True Color",
                 new String[]{
-                        "band_46",
-                        "band_28",
-                        "band_14"
+                        "band_046",
+                        "band_028",
+                        "band_014"
                 },
                 new String[]{
                         "ENMAP*",
@@ -22,9 +22,9 @@ class EnMapRgbProfiles {
         ));
         manager.addProfile(new RGBImageProfile("EnMAP VNIR",
                 new String[]{
-                        "band_71",
-                        "band_47",
-                        "band_26"
+                        "band_071",
+                        "band_047",
+                        "band_026"
                 },
                 new String[]{
                         "ENMAP*",
