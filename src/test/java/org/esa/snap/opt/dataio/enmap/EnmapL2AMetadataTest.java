@@ -1,6 +1,8 @@
 package org.esa.snap.opt.dataio.enmap;
 
 import org.esa.snap.core.datamodel.ProductData;
+import org.esa.snap.opt.enmap.EnmapMetadata;
+import org.esa.snap.opt.enmap.GeoReferencing;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.locationtech.jts.geom.Coordinate;

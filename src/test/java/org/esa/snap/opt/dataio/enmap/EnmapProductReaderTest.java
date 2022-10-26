@@ -1,6 +1,8 @@
 package org.esa.snap.opt.dataio.enmap;
 
 import org.esa.snap.core.util.SystemUtils;
+import org.esa.snap.opt.enmap.EnmapProductReader;
+import org.esa.snap.opt.enmap.EnmapProductReaderPlugIn;
 import org.junit.Before;
 import org.junit.Test;
 

@@ -1,4 +1,4 @@
-package org.esa.snap.opt.dataio.enmap;
+package org.esa.snap.opt.enmap;
 
 import org.esa.snap.core.datamodel.FlagCoding;
 import org.esa.snap.core.datamodel.Mask;
@@ -7,7 +7,7 @@ import org.esa.snap.core.util.BitSetter;
 
 import java.awt.*;
 
-import static org.esa.snap.opt.dataio.enmap.EnmapFileUtils.*;
+import static org.esa.snap.opt.enmap.EnmapFileUtils.*;
 
 class QualityLayerInfo {
     static QualityLayerInfo QL_CLASSES_LAND = create("Land", "Classified as land",

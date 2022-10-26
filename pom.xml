@@ -4,16 +4,16 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.esa.snap</groupId>
-    <artifactId>snap-enmap-reader</artifactId>
+    <artifactId>snap-enmap</artifactId>
     <packaging>nbm</packaging>
-    <version>0.3.35-ALPHA</version>
+    <version>0.4.01-ALPHA</version>
 
 
     <name>EnMAP Product Reader</name>
     <description>A product reader EnMAP L1B/L1C/L2A data</description>
 
     <properties>
-        <snap.version>9.0.0</snap.version>
+        <snap.version>9.0.2</snap.version>
         <javahelp.version>2.0.05</javahelp.version>
     </properties>
 

@@ -1,4 +1,4 @@
-package org.esa.snap.opt.dataio.enmap;
+package org.esa.snap.opt.enmap;
 
 import com.bc.ceres.core.VirtualDir;
 import it.geosolutions.imageioimpl.plugins.tiff.TIFFRenderedImage;

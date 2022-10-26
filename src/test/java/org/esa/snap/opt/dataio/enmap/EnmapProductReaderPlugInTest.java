@@ -2,8 +2,9 @@ package org.esa.snap.opt.dataio.enmap;
 
 import org.esa.snap.core.dataio.DecodeQualification;
 import org.esa.snap.core.util.io.SnapFileFilter;
+import org.esa.snap.opt.enmap.EnmapProductReaderPlugIn;
+import org.esa.snap.opt.enmap.InputTypes;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;

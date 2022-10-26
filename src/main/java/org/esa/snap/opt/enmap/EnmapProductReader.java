@@ -1,4 +1,4 @@
-package org.esa.snap.opt.dataio.enmap;
+package org.esa.snap.opt.enmap;
 
 import com.bc.ceres.core.ProgressMonitor;
 import com.bc.ceres.core.VirtualDir;
@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.*;
 import java.util.stream.IntStream;
 
-import static org.esa.snap.opt.dataio.enmap.EnmapFileUtils.*;
+import static org.esa.snap.opt.enmap.EnmapFileUtils.*;
 
 class EnmapProductReader extends AbstractProductReader {
     public static final int KM_IN_METERS = 1000;

@@ -1,4 +1,4 @@
-package org.esa.snap.opt.dataio.enmap;
+package org.esa.snap.opt.enmap;
 
 import org.locationtech.jts.geom.Geometry;
 import org.w3c.dom.Document;

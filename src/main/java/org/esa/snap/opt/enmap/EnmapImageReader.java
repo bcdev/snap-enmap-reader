@@ -1,4 +1,4 @@
-package org.esa.snap.opt.dataio.enmap;
+package org.esa.snap.opt.enmap;
 
 import com.bc.ceres.core.VirtualDir;
 import org.esa.snap.dataio.geotiff.GeoTiffImageReader;
@@ -7,7 +7,7 @@ import java.awt.*;
 import java.awt.image.RenderedImage;
 import java.io.IOException;
 
-import static org.esa.snap.opt.dataio.enmap.EnmapFileUtils.*;
+import static org.esa.snap.opt.enmap.EnmapFileUtils.*;
 
 interface EnmapImageReader {
     static EnmapImageReader createSpectralReader(VirtualDir dataDir, EnmapMetadata meta) throws IOException {

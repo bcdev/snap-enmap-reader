@@ -1,5 +1,6 @@
 package org.esa.snap.opt.dataio.enmap;
 
+import org.esa.snap.opt.enmap.InputTypes;
 import org.junit.Test;
 
 import java.io.File;
