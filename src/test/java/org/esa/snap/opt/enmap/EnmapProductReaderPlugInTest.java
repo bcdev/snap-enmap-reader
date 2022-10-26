@@ -1,4 +1,4 @@
-package org.esa.snap.opt.dataio.enmap;
+package org.esa.snap.opt.enmap;
 
 import org.esa.snap.core.dataio.DecodeQualification;
 import org.esa.snap.core.util.io.SnapFileFilter;
