@@ -1,4 +1,4 @@
-package org.esa.snap.opt.dataio.enmap;
+package org.esa.snap.opt.enmap;
 
 import org.esa.snap.opt.enmap.InputTypes;
 import org.junit.Test;
