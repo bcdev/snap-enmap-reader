@@ -3,7 +3,7 @@
 
     <folder name="Actions">
         <folder name="Readers">
-            <file name="org-esa-snap-dataio-ImportEnmapProduct.instance">
+            <file name="org-esa-snap-ImportEnmapProduct.instance">
                 <attr name="instanceCreate" methodvalue="org.openide.awt.Actions.alwaysEnabled"/>
                 <attr name="delegate" methodvalue="org.esa.snap.rcp.actions.file.ImportProductAction.create"/>
                 <attr name="displayName" stringvalue="EnMAP data"/>
@@ -18,9 +18,9 @@
         <folder name="File">
             <folder name="Import">
                 <folder name="Optical Sensors">
-                    <file name="org-esa-snap-dataio-ImportEnmapProduct.shadow">
+                    <file name="org-esa-snap-ImportEnmapProduct.shadow">
                         <attr name="originalFile"
-                              stringvalue="Actions/Readers/org-esa-snap-dataio-ImportEnmapProduct.instance"/>
+                              stringvalue="Actions/Readers/org-esa-snap-ImportEnmapProduct.instance"/>
                     </file>
                 </folder>
             </folder>
@@ -29,7 +29,7 @@
 
     <folder name="Services">
         <folder name="JavaHelp">
-            <file name="org-esa-snap-dataio-znap-helpset.xml" url="helpset.xml">
+            <file name="org-esa-snap-znap-helpset.xml" url="helpset.xml">
                 <attr name="position" intvalue="14563"/>
             </file>
         </folder>
