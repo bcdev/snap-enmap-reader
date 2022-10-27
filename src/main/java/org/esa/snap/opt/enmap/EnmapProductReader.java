@@ -33,7 +33,10 @@ import static org.esa.snap.opt.enmap.EnmapFileUtils.*;
 
 class EnmapProductReader extends AbstractProductReader {
     public static final int KM_IN_METERS = 1000;
+
+    public static final String SCENE_ZENITH_TPG_NAME = "scene_zenith";
     public static final String SCENE_AZIMUTH_TPG_NAME = "scene_azimuth";
+    public static final String SUN_ZENITH_TPG_NAME = "sun_zenith";
     public static final String SUN_AZIMUTH_TPG_NAME = "sun_azimuth";
     public static final String SUN_ELEVATION_TPG_NAME = "sun_elevation";
     public static final String ACROSS_OFF_NADIR_TPG_NAME = "across_off_nadir";
@@ -76,14 +79,11 @@ class EnmapProductReader extends AbstractProductReader {
         addTiePointGrids(product, meta);
         addQualityLayers(product, meta);
         addMetadata(product, meta);
+        addPointingFactory(product);
 
         product.setAutoGrouping("band:PIXELMASK:QUALITY");
 
         return product;
-    }
-
-    private void addMetadata(Product product, EnmapMetadata meta) throws IOException {
-        meta.insertInto(product.getMetadataRoot());
     }
 
     private void addQualityLayers(Product product, EnmapMetadata meta) throws IOException {
@@ -331,11 +331,32 @@ class EnmapProductReader extends AbstractProductReader {
     }
 
     private void addTiePointGrids(Product product, EnmapMetadata meta) throws IOException {
+        addTPG(product, SCENE_ZENITH_TPG_NAME, createSceneZenithAngles(meta));
         addTPG(product, SCENE_AZIMUTH_TPG_NAME, meta.getSceneAzimuthAngles());
+        addTPG(product, SUN_ZENITH_TPG_NAME, createSunZenithAngles(meta));
         addTPG(product, SUN_AZIMUTH_TPG_NAME, meta.getSunAzimuthAngles());
         addTPG(product, SUN_ELEVATION_TPG_NAME, meta.getSunElevationAngles());
         addTPG(product, ACROSS_OFF_NADIR_TPG_NAME, meta.getAcrossOffNadirAngles());
         addTPG(product, ALONG_OFF_NADIR_TPG_NAME, meta.getAlongOffNadirAngles());
+    }
+
+    private static double[] createSunZenithAngles(EnmapMetadata meta) throws IOException {
+        double[] sunElevationAngles = meta.getSunElevationAngles();
+        double[] sunZenithAngles = new double[sunElevationAngles.length];
+        for (int i = 0; i < sunZenithAngles.length; i++) {
+            sunZenithAngles[i] = 90 - sunElevationAngles[i];
+        }
+        return sunZenithAngles;
+    }
+
+    private static double[] createSceneZenithAngles(EnmapMetadata meta) throws IOException {
+        // TODO - The angles seem not to be correct yet
+        double[] acrossOffNadirAngles = meta.getAcrossOffNadirAngles();
+        double[] sceneZenithAngles = new double[acrossOffNadirAngles.length];
+        for (int i = 0; i < sceneZenithAngles.length; i++) {
+            sceneZenithAngles[i] = 90 - acrossOffNadirAngles[i];
+        }
+        return sceneZenithAngles;
     }
 
     private static TiePointGrid addTPG(Product product, String tpgName, double[] tpgValue) {
@@ -382,6 +403,18 @@ class EnmapProductReader extends AbstractProductReader {
             product.addBand(band);
         }
 
+    }
+
+    private void addMetadata(Product product, EnmapMetadata meta) throws IOException {
+        meta.insertInto(product.getMetadataRoot());
+    }
+
+    private void addPointingFactory(Product product) {
+        PointingFactoryRegistry registry = PointingFactoryRegistry.getInstance();
+        PointingFactory pointingFactory = registry.getPointingFactory(product.getProductType());
+        product.setPointingFactory(pointingFactory);
+
+//        product.setPointingFactory(new EnmapPointingFactory());
     }
 
     private int[] joinArrays(int[] vnirIndices, int[] swirIndices) {
@@ -474,7 +507,7 @@ class EnmapProductReader extends AbstractProductReader {
     private Point2D getEastingNorthing(EnmapMetadata meta) throws IOException {
         Map<String, String> fileNameMap = meta.getFileNameMap();
         String dataFileName = fileNameMap.get(QUALITY_CLASSES_KEY);
-        InputStream inputStream = EnmapFileUtils.getInputStream(dataDir,dataFileName);
+        InputStream inputStream = EnmapFileUtils.getInputStream(dataDir, dataFileName);
         ProductReader reader = null;
         try {
             reader = ProductIO.getProductReader("GeoTIFF");
