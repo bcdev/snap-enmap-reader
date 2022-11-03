@@ -15,9 +15,17 @@
     <properties>
         <snap.version>9.0.2</snap.version>
         <javahelp.version>2.0.05</javahelp.version>
+        <netbeans.version>RELEASE82</netbeans.version>
     </properties>
 
     <dependencies>
+
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-netbeans-modules-javahelp</artifactId>
+            <version>${netbeans.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>org.esa.snap</groupId>
             <artifactId>ceres-core</artifactId>
