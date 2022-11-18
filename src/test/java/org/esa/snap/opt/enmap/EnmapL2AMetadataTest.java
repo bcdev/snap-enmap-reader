@@ -27,7 +27,7 @@ public class EnmapL2AMetadataTest {
     public static void beforeClass() throws Exception {
         URI resource = Objects.requireNonNull(EnmapMetadataTestUtils.class.getResource("enmap_L2A_gtif_qualification.zip")).toURI();
         try (ZipFile zip = new ZipFile(new File(resource))) {
-            ZipEntry entry = zip.getEntry("ENMAP01-____L2A-DT000326721_20170626T102020Z_001_V000204_20200406T201930Z-METADATA.XML");
+            ZipEntry entry = zip.getEntry("ENMAP01-____L2A-DT0000326721_20170626T102020Z_001_V000204_20200406T201930Z-METADATA.XML");
             meta = EnmapMetadata.create(zip.getInputStream(entry));
         }
     }

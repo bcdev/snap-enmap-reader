@@ -9,13 +9,15 @@ import java.nio.file.Path;
 import java.util.regex.Pattern;
 
 class EnmapFileUtils {
-    private static final String L1B_BASEFILENAME = "ENMAP\\d{2}-____L1B-DT.{9}_\\d{8}T\\d{6}Z_.{3}_V.{6}_\\d{8}T\\d{6}Z";
-    private static final String L1C_BASEFILENAME = "ENMAP\\d{2}-____L1C-DT.{9}_\\d{8}T\\d{6}Z_.{3}_V.{6}_\\d{8}T\\d{6}Z";
-    private static final String L2A_BASEFILENAME = "ENMAP\\d{2}-____L2A-DT.{9}_\\d{8}T\\d{6}Z_.{3}_V.{6}_\\d{8}T\\d{6}Z";
+    private static final String L1B_BASEFILENAME = "ENMAP\\d{2}-____L1B-DT.{10}_\\d{8}T\\d{6}Z_.{3}_V.{6}_\\d{8}T\\d{6}Z";
+    private static final String L1C_BASEFILENAME = "ENMAP\\d{2}-____L1C-DT.{10}_\\d{8}T\\d{6}Z_.{3}_V.{6}_\\d{8}T\\d{6}Z";
+    private static final String L2A_BASEFILENAME = "ENMAP\\d{2}-____L2A-DT.{10}_\\d{8}T\\d{6}Z_.{3}_V.{6}_\\d{8}T\\d{6}Z";
 
     public static final String METADATA_SUFFIX = "-METADATA.XML";
+    public static final String HISTORY_SUFFIX = "-HISTORY.XML";
     static final Pattern[] L1B_FILENAME_PATTERNS = new Pattern[]{
             Pattern.compile(L1B_BASEFILENAME + METADATA_SUFFIX),
+//            Pattern.compile(L1B_BASEFILENAME + HISTORY_SUFFIX),
             Pattern.compile(L1B_BASEFILENAME + "-QL_PIXELMASK_SWIR.TIF"),
             Pattern.compile(L1B_BASEFILENAME + "-QL_PIXELMASK_VNIR.TIF"),
             Pattern.compile(L1B_BASEFILENAME + "-QL_QUALITY_CIRRUS.TIF"),
@@ -36,6 +38,7 @@ class EnmapFileUtils {
 
     static final Pattern[] L1C_FILENAME_PATTERNS = new Pattern[]{
             Pattern.compile(L1C_BASEFILENAME + METADATA_SUFFIX),
+//            Pattern.compile(L1C_BASEFILENAME + HISTORY_SUFFIX),
             Pattern.compile(L1C_BASEFILENAME + "-QL_PIXELMASK.TIF"),
             Pattern.compile(L1C_BASEFILENAME + "-QL_QUALITY_CIRRUS.TIF"),
             Pattern.compile(L1C_BASEFILENAME + "-QL_QUALITY_CLASSES.TIF"),
@@ -51,6 +54,7 @@ class EnmapFileUtils {
     };
     static final Pattern[] L2A_FILENAME_PATTERNS = new Pattern[]{
             Pattern.compile(L2A_BASEFILENAME + METADATA_SUFFIX),
+//            Pattern.compile(L2A_BASEFILENAME + HISTORY_SUFFIX),
             Pattern.compile(L2A_BASEFILENAME + "-QL_PIXELMASK.TIF"),
             Pattern.compile(L2A_BASEFILENAME + "-QL_QUALITY_CIRRUS.TIF"),
             Pattern.compile(L2A_BASEFILENAME + "-QL_QUALITY_CLASSES.TIF"),

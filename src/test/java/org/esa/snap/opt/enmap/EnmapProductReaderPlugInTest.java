@@ -2,13 +2,12 @@ package org.esa.snap.opt.enmap;
 
 import org.esa.snap.core.dataio.DecodeQualification;
 import org.esa.snap.core.util.io.SnapFileFilter;
-import org.esa.snap.opt.enmap.EnmapProductReaderPlugIn;
-import org.esa.snap.opt.enmap.InputTypes;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
 import java.net.URISyntaxException;
+import java.util.Objects;
 
 import static org.junit.Assert.*;
 
@@ -23,42 +22,42 @@ public class EnmapProductReaderPlugInTest {
 
     @Test
     public void getDecodeQualification_l1b_gtif_zip() throws URISyntaxException {
-        File inputZip = new File(getClass().getResource("enmap_L1B_gtif_qualification.zip").toURI());
+        File inputZip = new File(Objects.requireNonNull(getClass().getResource("enmap_L1B_gtif_qualification.zip")).toURI());
         DecodeQualification dq = plugIn.getDecodeQualification(inputZip);
         assertEquals(DecodeQualification.INTENDED, dq);
     }
 
     @Test
     public void getDecodeQualification_l1c_gtif_zip() throws URISyntaxException {
-        File inputZip = new File(getClass().getResource("enmap_L1C_gtif_qualification.zip").toURI());
+        File inputZip = new File(Objects.requireNonNull(getClass().getResource("enmap_L1C_gtif_qualification.zip")).toURI());
         DecodeQualification dq = plugIn.getDecodeQualification(inputZip);
         assertEquals(DecodeQualification.INTENDED, dq);
     }
 
     @Test
     public void getDecodeQualification_l2a_gtif_zip() throws URISyntaxException {
-        File inputZip = new File(getClass().getResource("enmap_L2A_gtif_qualification.zip").toURI());
+        File inputZip = new File(Objects.requireNonNull(getClass().getResource("enmap_L2A_gtif_qualification.zip")).toURI());
         DecodeQualification dq = plugIn.getDecodeQualification(inputZip);
         assertEquals(DecodeQualification.INTENDED, dq);
     }
 
     @Test
     public void getDecodeQualification_l1b_gtif_folder() throws URISyntaxException {
-        File inputFolder = new File(getClass().getResource("enmap_L1B_gtif_qualification/ENMAP01-____L1B-DT000326721_20170626T102020Z_001_V000204_20200406T154119Z-METADATA.XML").toURI());
+        File inputFolder = new File(Objects.requireNonNull(getClass().getResource("enmap_L1B_gtif_qualification/ENMAP01-____L1B-DT0000326721_20170626T102020Z_001_V000204_20200406T154119Z-METADATA.XML")).toURI());
         DecodeQualification dq = plugIn.getDecodeQualification(inputFolder);
         assertEquals(DecodeQualification.INTENDED, dq);
     }
 
     @Test
     public void getDecodeQualification_l1c_gtif_folder() throws URISyntaxException {
-        File inputFolder = new File(getClass().getResource("enmap_L1C_gtif_qualification/ENMAP01-____L1C-DT000326721_20170626T102020Z_001_V000204_20200406T180016Z-METADATA.XML").toURI());
+        File inputFolder = new File(Objects.requireNonNull(getClass().getResource("enmap_L1C_gtif_qualification/ENMAP01-____L1C-DT0000326721_20170626T102020Z_001_V000204_20200406T180016Z-METADATA.XML")).toURI());
         DecodeQualification dq = plugIn.getDecodeQualification(inputFolder);
         assertEquals(DecodeQualification.INTENDED, dq);
     }
 
     @Test
     public void getDecodeQualification_l2a_gtif_folder() throws URISyntaxException {
-        File inputFolder = new File(getClass().getResource("enmap_L2A_gtif_qualification/ENMAP01-____L2A-DT000326721_20170626T102020Z_001_V000204_20200406T201930Z-METADATA.XML").toURI());
+        File inputFolder = new File(Objects.requireNonNull(getClass().getResource("enmap_L2A_gtif_qualification/ENMAP01-____L2A-DT0000326721_20170626T102020Z_001_V000204_20200406T201930Z-METADATA.XML")).toURI());
         DecodeQualification dq = plugIn.getDecodeQualification(inputFolder);
         assertEquals(DecodeQualification.INTENDED, dq);
     }
