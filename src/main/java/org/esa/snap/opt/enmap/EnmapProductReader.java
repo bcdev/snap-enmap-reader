@@ -365,7 +365,8 @@ class EnmapProductReader extends AbstractProductReader {
 
         product.setPreferredTileSize(spectralImageReader.getTileDimension());
         int[] spectralIndices = joinArrays(meta.getVnirIndices(), meta.getSwirIndices());
-        int dataType = ProductData.TYPE_INT16;
+
+        int dataType = meta.getSpectralDataType();
         for (int i = 0; i < spectralImageReader.getNumImages(); i++) {
             String bandName = String.format("band_%03d", spectralIndices[i]);
             Band band = new Band(bandName, dataType, product.getSceneRasterWidth(), product.getSceneRasterHeight());

@@ -1,5 +1,6 @@
 package org.esa.snap.opt.enmap;
 
+import org.esa.snap.core.datamodel.ProductData;
 import org.locationtech.jts.geom.Geometry;
 import org.w3c.dom.Document;
 
@@ -32,7 +33,12 @@ class EnmapL2AMetadata extends EnmapOrthoMetadata {
     }
 
     @Override
-    public float getSpectralBackgroundValue() throws IOException {
+    public int getSpectralDataType() {
+        return ProductData.TYPE_UINT16;
+    }
+
+    @Override
+    public float getSpectralBackgroundValue() {
         // For L2A the background value is not available or wrong in the testdata
         return -32768;
     }

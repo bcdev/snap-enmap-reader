@@ -508,6 +508,15 @@ abstract class EnmapMetadata {
      */
     public abstract String getSpectralUnit();
 
+    /**
+     * Returns the raw data type of the spectral channels as a
+     * type of {@link ProductData}
+     *
+     * @return The data type of the raw spectral data.
+     */
+    public abstract int getSpectralDataType();
+
+
     protected String getNodeContent(String path) throws IOException {
         return getNodeContent(path, xpath, doc);
 
