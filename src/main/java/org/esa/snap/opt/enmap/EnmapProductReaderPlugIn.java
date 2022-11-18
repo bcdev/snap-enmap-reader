@@ -27,14 +27,13 @@ public class EnmapProductReaderPlugIn implements ProductReaderPlugIn {
         try {
             Path path = convertToPath(o);
             if (path == null) {
-                return DecodeQualification.INTENDED;
+                return DecodeQualification.UNABLE;
             }
             if (!EnmapFileUtils.isZip(path)) {
                 path = path.getParent();
             }
             if (path != null) {
-                VirtualDir virtualDir;
-                virtualDir = VirtualDir.create(path.toFile());
+                VirtualDir virtualDir = VirtualDir.create(path.toFile());
                 String[] fileNames = virtualDir.listAllFiles();
                 List<Path> filePaths = new ArrayList<>();
                 for (String fileName : fileNames) {
