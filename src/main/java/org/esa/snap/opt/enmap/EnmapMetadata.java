@@ -26,14 +26,14 @@ import java.util.Date;
 import java.util.Map;
 import java.util.stream.IntStream;
 
-abstract class EnmapMetadata {
+public abstract class EnmapMetadata {
     static final String DATETIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSSSSSX";
     static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(DATETIME_PATTERN);
 
     private final XPath xpath;
     private final Document doc;
 
-    enum PROCESSING_LEVEL {L1B, L1C, L2A}
+    public enum PROCESSING_LEVEL {L1B, L1C, L2A}
 
     String NOT_AVAILABLE = "NA";
 
@@ -119,7 +119,7 @@ abstract class EnmapMetadata {
      */
     public String getProductName() throws IOException {
         String fileName = getNodeContent("/level_X/metadata/name");
-        return fileName.substring(0, 73);
+        return fileName.substring(0, 74);
     }
 
     /**

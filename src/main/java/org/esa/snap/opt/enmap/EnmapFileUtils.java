@@ -8,7 +8,7 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.regex.Pattern;
 
-class EnmapFileUtils {
+public class EnmapFileUtils {
     private static final String L1B_BASEFILENAME = "ENMAP\\d{2}-____L1B-DT.{10}_\\d{8}T\\d{6}Z_.{3}_V.{6}_\\d{8}T\\d{6}Z";
     private static final String L1C_BASEFILENAME = "ENMAP\\d{2}-____L1C-DT.{10}_\\d{8}T\\d{6}Z_.{3}_V.{6}_\\d{8}T\\d{6}Z";
     private static final String L2A_BASEFILENAME = "ENMAP\\d{2}-____L2A-DT.{10}_\\d{8}T\\d{6}Z_.{3}_V.{6}_\\d{8}T\\d{6}Z";
@@ -92,11 +92,15 @@ class EnmapFileUtils {
     }
 
     public static InputStream getInputStream(VirtualDir dataDir, String fileName) throws IOException {
+        return dataDir.getInputStream(getRelativePath(dataDir, fileName));
+    }
+
+    public static String getRelativePath(VirtualDir dataDir, String fileName) {
         String relPath = fileName;
         if (dataDir.isArchive()) {
             String innerDirectory = dataDir.getBaseFile().toPath().getFileName().toString();
             relPath = FileUtils.getFilenameWithoutExtension(innerDirectory) + "/" + fileName;
         }
-        return dataDir.getInputStream(relPath);
+        return relPath;
     }
 }

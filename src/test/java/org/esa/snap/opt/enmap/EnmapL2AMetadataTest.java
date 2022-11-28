@@ -25,9 +25,9 @@ public class EnmapL2AMetadataTest {
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        URI resource = Objects.requireNonNull(EnmapMetadataTestUtils.class.getResource("enmap_L2A_gtif_qualification.zip")).toURI();
+        URI resource = Objects.requireNonNull(EnmapL2AMetadataTest.class.getResource("enmap_L2A_gtif_qualification.zip")).toURI();
         try (ZipFile zip = new ZipFile(new File(resource))) {
-            ZipEntry entry = zip.getEntry("ENMAP01-____L2A-DT0000326721_20170626T102020Z_001_V000204_20200406T201930Z-METADATA.XML");
+            ZipEntry entry = zip.getEntry("enmap_L2A_gtif_qualification/ENMAP01-____L2A-DT0000326721_20170626T102020Z_001_V000204_20200406T201930Z-METADATA.XML");
             meta = EnmapMetadata.create(zip.getInputStream(entry));
         }
     }
@@ -79,7 +79,7 @@ public class EnmapL2AMetadataTest {
         assertEquals(545, stopCal.get(Calendar.MILLISECOND));
         assertEquals(TimeZone.getTimeZone("UTC"), stopCal.getTimeZone());
 
-        assertEquals("ENMAP01-____L2A-DT000326721_20170626T102020Z_001_V000204_20200406T201930Z", meta.getProductName());
+        assertEquals("ENMAP01-____L2A-DT0000326721_20170626T102020Z_001_V000204_20200406T201930Z", meta.getProductName());
         assertEquals("ENMAP_L2A", meta.getProductType());
         assertEquals(new Dimension(1128, 1212), meta.getSceneDimension());
         assertEquals(218, meta.getNumSpectralBands());

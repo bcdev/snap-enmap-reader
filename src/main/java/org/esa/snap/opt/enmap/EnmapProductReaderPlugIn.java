@@ -5,6 +5,7 @@ import org.esa.snap.core.dataio.DecodeQualification;
 import org.esa.snap.core.dataio.ProductReader;
 import org.esa.snap.core.dataio.ProductReaderPlugIn;
 import org.esa.snap.core.util.io.SnapFileFilter;
+import org.esa.snap.runtime.Config;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -12,16 +13,21 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.prefs.Preferences;
 
 public class EnmapProductReaderPlugIn implements ProductReaderPlugIn {
 
     public static final String[] FILE_EXTENSIONS = {".zip", ".xml"};
     public static final String DESCRIPTION = "EnMAP L1B/L1C/L2A Product Reader";
+    public static final Preferences PREFERENCES = Config.instance("enmap").load().preferences();
     private final String[] FORMAT_NAMES = new String[]{"EnMAP L1B/L1C/L2A"};
+
+    public static final String ENMAP_GEOTIFF_USE_JAI = "enmap.geotiff.useJai";
 
     static {
         EnMapRgbProfiles.registerRGBProfiles();
     }
+
     @Override
     public DecodeQualification getDecodeQualification(Object o) {
         try {

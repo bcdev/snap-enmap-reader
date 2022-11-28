@@ -11,13 +11,21 @@ import org.esa.snap.core.dataio.geocoding.GeoChecks;
 import org.esa.snap.core.dataio.geocoding.GeoRaster;
 import org.esa.snap.core.dataio.geocoding.forward.TiePointBilinearForward;
 import org.esa.snap.core.dataio.geocoding.inverse.TiePointInverse;
-import org.esa.snap.core.datamodel.*;
+import org.esa.snap.core.datamodel.Band;
+import org.esa.snap.core.datamodel.CrsGeoCoding;
+import org.esa.snap.core.datamodel.FlagCoding;
+import org.esa.snap.core.datamodel.GeoCoding;
+import org.esa.snap.core.datamodel.Product;
+import org.esa.snap.core.datamodel.ProductData;
+import org.esa.snap.core.datamodel.TiePointGrid;
+import org.esa.snap.opt.enmap.imgReader.EnmapImageReader;
 import org.geotools.referencing.CRS;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
 
-import java.awt.*;
+import java.awt.Dimension;
+import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.image.Raster;
@@ -25,8 +33,12 @@ import java.awt.image.RenderedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.*;
+import java.util.Map;
+import java.util.Optional;
+import java.util.TreeMap;
 import java.util.stream.IntStream;
 
 import static org.esa.snap.opt.enmap.EnmapFileUtils.*;
@@ -66,6 +78,12 @@ class EnmapProductReader extends AbstractProductReader {
         String metadataFile = getMetadataFile(fileNames);
         EnmapMetadata meta = EnmapMetadata.create(dataDir.getInputStream(metadataFile));
 
+        String productFormat = meta.getProductFormat();
+        if (!ProductFormat.GeoTIFF_Metadata.name().equals(ProductFormat.toEnumName(productFormat))) {
+            throw new IllegalStateException(String.format("The product format '%s' is not supported.%n" +
+                    "Currently only '%s' is supported", productFormat, ProductFormat.GeoTIFF_Metadata.asEnmapFormatName()));
+        }
+
         Dimension dimension = meta.getSceneDimension();
         Product product = new Product(meta.getProductName(), meta.getProductType(), dimension.width, dimension.height);
         product.setStartTime(meta.getStartTime());
@@ -88,7 +106,7 @@ class EnmapProductReader extends AbstractProductReader {
 
     private void addQualityLayers(Product product, EnmapMetadata meta) throws IOException {
         // cannot be read correctly something is wrong with the GeoTIFF, see important note in the test data set.
-        //addPixelMasksQl(product, dataDir, meta);
+//        addPixelMasksQl(product, dataDir, meta);
         addClassesQl(product, meta);
         addHazeQl(product, meta);
         addCloudQl(product, meta);
@@ -109,10 +127,11 @@ class EnmapProductReader extends AbstractProductReader {
         QualityLayerInfo.QL_CLASSES_BG.addFlagTo(flagCoding);
         QualityLayerInfo.QL_CLASSES_BG.addMaskTo(product);
 
-        EnmapImageReader qualityReader = EnmapImageReader.createQualityReader(dataDir, meta, qualityKey);
+        EnmapImageReader qualityReader = EnmapImageReader.createImageReader(dataDir, meta, qualityKey);
         imageReaderList.add(qualityReader); // prevents finalising the reader
 
-        addFlagBand(product, flagCoding, qualityKey, qualityReader.getImageAt(0));
+        RenderedImage imageAt = qualityReader.getImageAt(0);
+        addFlagBand(product, flagCoding, qualityKey, imageAt);
     }
 
     private void addCloudQl(Product product, EnmapMetadata meta) throws IOException {
@@ -122,7 +141,7 @@ class EnmapProductReader extends AbstractProductReader {
         QualityLayerInfo.QL_CLOUD_CLOUD.addFlagTo(flagCoding);
         QualityLayerInfo.QL_CLOUD_CLOUD.addMaskTo(product);
 
-        EnmapImageReader qualityReader = EnmapImageReader.createQualityReader(dataDir, meta, qualityKey);
+        EnmapImageReader qualityReader = EnmapImageReader.createImageReader(dataDir, meta, qualityKey);
         imageReaderList.add(qualityReader); // prevents finalising the reader
 
         addFlagBand(product, flagCoding, qualityKey, qualityReader.getImageAt(0));
@@ -135,7 +154,7 @@ class EnmapProductReader extends AbstractProductReader {
         QualityLayerInfo.QL_CLOUDSHADOW_SHADOW.addFlagTo(flagCoding);
         QualityLayerInfo.QL_CLOUDSHADOW_SHADOW.addMaskTo(product);
 
-        EnmapImageReader qualityReader = EnmapImageReader.createQualityReader(dataDir, meta, qualityKey);
+        EnmapImageReader qualityReader = EnmapImageReader.createImageReader(dataDir, meta, qualityKey);
         imageReaderList.add(qualityReader); // prevents finalising the reader
 
         addFlagBand(product, flagCoding, qualityKey, qualityReader.getImageAt(0));
@@ -148,7 +167,7 @@ class EnmapProductReader extends AbstractProductReader {
         QualityLayerInfo.QL_HAZE_HAZE.addFlagTo(flagCoding);
         QualityLayerInfo.QL_HAZE_HAZE.addMaskTo(product);
 
-        EnmapImageReader qualityReader = EnmapImageReader.createQualityReader(dataDir, meta, qualityKey);
+        EnmapImageReader qualityReader = EnmapImageReader.createImageReader(dataDir, meta, qualityKey);
         imageReaderList.add(qualityReader); // prevents finalising the reader
 
         addFlagBand(product, flagCoding, qualityKey, qualityReader.getImageAt(0));
@@ -165,7 +184,7 @@ class EnmapProductReader extends AbstractProductReader {
         QualityLayerInfo.QL_CIRRUS_THICK.addFlagTo(flagCoding);
         QualityLayerInfo.QL_CIRRUS_THICK.addMaskTo(product);
 
-        EnmapImageReader qualityReader = EnmapImageReader.createQualityReader(dataDir, meta, qualityKey);
+        EnmapImageReader qualityReader = EnmapImageReader.createImageReader(dataDir, meta, qualityKey);
         imageReaderList.add(qualityReader); // prevents finalising the reader
 
         addFlagBand(product, flagCoding, qualityKey, qualityReader.getImageAt(0));
@@ -178,7 +197,7 @@ class EnmapProductReader extends AbstractProductReader {
         QualityLayerInfo.QL_SNOW_SNOW.addFlagTo(flagCoding);
         QualityLayerInfo.QL_SNOW_SNOW.addMaskTo(product);
 
-        EnmapImageReader qualityReader = EnmapImageReader.createQualityReader(dataDir, meta, qualityKey);
+        EnmapImageReader qualityReader = EnmapImageReader.createImageReader(dataDir, meta, qualityKey);
         imageReaderList.add(qualityReader); // prevents finalising the reader
 
         addFlagBand(product, flagCoding, qualityKey, qualityReader.getImageAt(0));
@@ -255,7 +274,7 @@ class EnmapProductReader extends AbstractProductReader {
             QualityLayerInfo.QL_TF_VNIR_ARTEFACT_VNIR.addFlagTo(vnirFlagCoding);
             QualityLayerInfo.QL_TF_VNIR_ARTEFACT_VNIR.addMaskTo(product);
 
-            EnmapImageReader qualityVnirReader = EnmapImageReader.createQualityReader(dataDir, meta, vnirQualityKey);
+            EnmapImageReader qualityVnirReader = EnmapImageReader.createImageReader(dataDir, meta, vnirQualityKey);
             imageReaderList.add(qualityVnirReader); // prevents finalising the reader
 
             addFlagBand(product, vnirFlagCoding, vnirQualityKey, qualityVnirReader.getImageAt(0));
@@ -285,7 +304,7 @@ class EnmapProductReader extends AbstractProductReader {
             QualityLayerInfo.QL_TF_SWIR_ARTEFACT_VNIR.addFlagTo(swirFlagCoding);
             QualityLayerInfo.QL_TF_SWIR_ARTEFACT_VNIR.addMaskTo(product);
 
-            EnmapImageReader qualitySwirReader = EnmapImageReader.createQualityReader(dataDir, meta, swirQualityKey);
+            EnmapImageReader qualitySwirReader = EnmapImageReader.createImageReader(dataDir, meta, swirQualityKey);
             imageReaderList.add(qualitySwirReader); // prevents finalising the reader
 
             addFlagBand(product, swirFlagCoding, swirQualityKey, qualitySwirReader.getImageAt(0));
@@ -314,20 +333,21 @@ class EnmapProductReader extends AbstractProductReader {
             QualityLayerInfo.QL_TF_ARTEFACT_VNIR.addFlagTo(flagCoding);
             QualityLayerInfo.QL_TF_ARTEFACT_VNIR.addMaskTo(product);
 
-            EnmapImageReader qualityReader = EnmapImageReader.createQualityReader(dataDir, meta, qualityKey);
+            EnmapImageReader qualityReader = EnmapImageReader.createImageReader(dataDir, meta, qualityKey);
             imageReaderList.add(qualityReader); // prevents finalising the reader
 
             addFlagBand(product, flagCoding, qualityKey, qualityReader.getImageAt(0));
         }
     }
 
-    private void addFlagBand(Product product, FlagCoding flagCoding, String qualityKey, RenderedImage tiffImage) {
-        Band flagBand = new Band(qualityKey, ProductData.TYPE_UINT8, tiffImage.getWidth(), tiffImage.getHeight());
+    private void addFlagBand(Product product, FlagCoding flagCoding, String qualityKey, RenderedImage dataImage) {
+        Band flagBand = new Band(qualityKey, ProductData.TYPE_UINT8, dataImage.getWidth(), dataImage.getHeight());
         flagBand.setSampleCoding(flagCoding);
         // first the band needs to be added to the product and only then the source mage set
         // see: https://senbox.atlassian.net/browse/SNAP-935
         product.addBand(flagBand);
-        flagBand.setSourceImage(tiffImage);
+        bandImageMap.put(qualityKey, dataImage);
+//        flagBand.setSourceImage(dataImage);
     }
 
     private void addTiePointGrids(Product product, EnmapMetadata meta) throws IOException {
@@ -380,6 +400,7 @@ class EnmapProductReader extends AbstractProductReader {
             band.setNoDataValue(meta.getSpectralBackgroundValue());
             band.setNoDataValueUsed(true);
             bandImageMap.put(bandName, spectralImageReader.getImageAt(i));
+//            band.setSourceImage(spectralImageReader.getImageAt(i));
             product.addBand(band);
         }
 
