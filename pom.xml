@@ -6,14 +6,15 @@
     <groupId>org.esa.snap</groupId>
     <artifactId>snap-enmap</artifactId>
     <packaging>nbm</packaging>
-    <version>0.4.01-ALPHA</version>
+    <version>0.5.01-ALPHA</version>
 
 
     <name>EnMAP Product Reader</name>
     <description>A product reader EnMAP L1B/L1C/L2A data</description>
 
     <properties>
-        <snap.version>9.0.2</snap.version>
+        <snap.version>9.0.0</snap.version>
+        <s2tbx.version>9.0.0</s2tbx.version>
         <javahelp.version>2.0.05</javahelp.version>
         <netbeans.version>RELEASE82</netbeans.version>
     </properties>
@@ -50,6 +51,11 @@
             <groupId>org.esa.snap</groupId>
             <artifactId>snap-geotiff</artifactId>
             <version>${snap.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.esa.s2tbx</groupId>
+            <artifactId>s2tbx-gdal-reader</artifactId>
+            <version>${s2tbx.version}</version>
         </dependency>
 
         <dependency>
