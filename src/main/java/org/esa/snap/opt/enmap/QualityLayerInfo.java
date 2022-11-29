@@ -186,9 +186,9 @@ class QualityLayerInfo {
         }
     }
 
-    void addFlagSeriesTo(FlagCoding flagCoding, int numFlags) {
-        for (int i = 1; i <= numFlags; i++) {
-            String seriesFlagName = String.format("%s_%03d", flagName, i);
+    void addFlagSeriesTo(FlagCoding flagCoding, int startIndex, int numFlags) {
+        for (int i = 0; i < numFlags; i++) {
+            String seriesFlagName = String.format("%s_%03d", flagName, startIndex +i);
             if (flagValue != null) {
                 flagCoding.addFlag(seriesFlagName, flagMask, flagValue, description);
             } else {
@@ -204,13 +204,13 @@ class QualityLayerInfo {
                 String.format("%s.%s", qualityKey, flagName), maskColor, transparency));
     }
 
-    void addMaskSeriesTo(Product product, int numMasks) {
+    void addMaskSeriesTo(Product product, int startIndex, int numMasks) {
         int w = product.getSceneRasterWidth();
         int h = product.getSceneRasterHeight();
-        for (int i = 1; i <= numMasks; i++) {
-            String seriesMaskName = String.format("%s_%03d", maskName, i);
+        for (int i = 0; i < numMasks; i++) {
+            String seriesMaskName = String.format("%s_%03d", maskName, startIndex + i);
             product.getMaskGroup().add(Mask.BandMathsType.create(seriesMaskName, description, w, h,
-                    String.format("%s.%s_%03d", qualityKey, flagName, i), maskColor, transparency));
+                    String.format("%s.%s_%03d", qualityKey, flagName, startIndex + i), maskColor, transparency));
         }
     }
 }

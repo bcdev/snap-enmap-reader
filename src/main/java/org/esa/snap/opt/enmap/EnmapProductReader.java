@@ -106,7 +106,7 @@ class EnmapProductReader extends AbstractProductReader {
 
     private void addQualityLayers(Product product, EnmapMetadata meta) throws IOException {
         // cannot be read correctly something is wrong with the GeoTIFF, see important note in the test data set.
-//        addPixelMasksQl(product, dataDir, meta);
+        addPixelMasksQl(product, dataDir, meta);
         addClassesQl(product, meta);
         addHazeQl(product, meta);
         addCloudQl(product, meta);
@@ -131,7 +131,7 @@ class EnmapProductReader extends AbstractProductReader {
         imageReaderList.add(qualityReader); // prevents finalising the reader
 
         RenderedImage imageAt = qualityReader.getImageAt(0);
-        addFlagBand(product, flagCoding, qualityKey, imageAt);
+        addFlagBand(product, qualityKey, flagCoding, imageAt);
     }
 
     private void addCloudQl(Product product, EnmapMetadata meta) throws IOException {
@@ -144,7 +144,7 @@ class EnmapProductReader extends AbstractProductReader {
         EnmapImageReader qualityReader = EnmapImageReader.createImageReader(dataDir, meta, qualityKey);
         imageReaderList.add(qualityReader); // prevents finalising the reader
 
-        addFlagBand(product, flagCoding, qualityKey, qualityReader.getImageAt(0));
+        addFlagBand(product, qualityKey, flagCoding, qualityReader.getImageAt(0));
     }
 
     private void addCloudShadowQl(Product product, EnmapMetadata meta) throws IOException {
@@ -157,7 +157,7 @@ class EnmapProductReader extends AbstractProductReader {
         EnmapImageReader qualityReader = EnmapImageReader.createImageReader(dataDir, meta, qualityKey);
         imageReaderList.add(qualityReader); // prevents finalising the reader
 
-        addFlagBand(product, flagCoding, qualityKey, qualityReader.getImageAt(0));
+        addFlagBand(product, qualityKey, flagCoding, qualityReader.getImageAt(0));
     }
 
     private void addHazeQl(Product product, EnmapMetadata meta) throws IOException {
@@ -170,7 +170,7 @@ class EnmapProductReader extends AbstractProductReader {
         EnmapImageReader qualityReader = EnmapImageReader.createImageReader(dataDir, meta, qualityKey);
         imageReaderList.add(qualityReader); // prevents finalising the reader
 
-        addFlagBand(product, flagCoding, qualityKey, qualityReader.getImageAt(0));
+        addFlagBand(product, qualityKey, flagCoding, qualityReader.getImageAt(0));
     }
 
     private void addCirrusQl(Product product, EnmapMetadata meta) throws IOException {
@@ -187,7 +187,7 @@ class EnmapProductReader extends AbstractProductReader {
         EnmapImageReader qualityReader = EnmapImageReader.createImageReader(dataDir, meta, qualityKey);
         imageReaderList.add(qualityReader); // prevents finalising the reader
 
-        addFlagBand(product, flagCoding, qualityKey, qualityReader.getImageAt(0));
+        addFlagBand(product, qualityKey, flagCoding, qualityReader.getImageAt(0));
     }
 
     private void addSnowQl(Product product, EnmapMetadata meta) throws IOException {
@@ -200,7 +200,7 @@ class EnmapProductReader extends AbstractProductReader {
         EnmapImageReader qualityReader = EnmapImageReader.createImageReader(dataDir, meta, qualityKey);
         imageReaderList.add(qualityReader); // prevents finalising the reader
 
-        addFlagBand(product, flagCoding, qualityKey, qualityReader.getImageAt(0));
+        addFlagBand(product, qualityKey, flagCoding, qualityReader.getImageAt(0));
     }
 
     private void addPixelMasksQl(Product product, VirtualDir dataDir, EnmapMetadata meta) throws IOException {
@@ -208,27 +208,27 @@ class EnmapProductReader extends AbstractProductReader {
         imageReaderList.add(pixelMaskReader);
         if (EnmapMetadata.PROCESSING_LEVEL.L1B.equals(meta.getProcessingLevel())) {
             int numVnirImages = meta.getNumVnirBands();
-            String vnirQualityKey = QUALITY_PIXELMASK_VNIR_KEY;
-            FlagCoding vnirFlagCoding = new FlagCoding(vnirQualityKey);
+
+            FlagCoding vnirFlagCoding = new FlagCoding(QUALITY_PIXELMASK_VNIR_KEY);
             product.getFlagCodingGroup().add(vnirFlagCoding);
-            QualityLayerInfo.QL_PM_VNIR_DEFECTIVE_SERIES.addFlagSeriesTo(vnirFlagCoding, numVnirImages);
-            QualityLayerInfo.QL_PM_VNIR_DEFECTIVE_SERIES.addMaskSeriesTo(product, numVnirImages);
+            QualityLayerInfo.QL_PM_VNIR_DEFECTIVE_SERIES.addFlagSeriesTo(vnirFlagCoding, 1, numVnirImages);
+            QualityLayerInfo.QL_PM_VNIR_DEFECTIVE_SERIES.addMaskSeriesTo(product, 1, numVnirImages);
 
             for (int i = 0; i < numVnirImages; i++) {
                 RenderedImage imageAt = pixelMaskReader.getImageAt(i);
-                addFlagBand(product, vnirFlagCoding, String.format("%s_%03d", vnirQualityKey, i + 1), imageAt);
+                addFlagBand(product, String.format("%s_%03d", QUALITY_PIXELMASK_VNIR_KEY, i + 1), vnirFlagCoding, imageAt);
             }
 
             int numSwirImages = meta.getNumSwirBands();
-            String swirQualityKey = QUALITY_PIXELMASK_SWIR_KEY;
-            FlagCoding swirFlagCoding = new FlagCoding(swirQualityKey);
-            product.getFlagCodingGroup().add(swirFlagCoding);
-            QualityLayerInfo.QL_PM_SWIR_DEFECTIVE_SERIES.addFlagSeriesTo(swirFlagCoding, numSwirImages);
-            QualityLayerInfo.QL_PM_SWIR_DEFECTIVE_SERIES.addMaskSeriesTo(product, numSwirImages);
 
-            for (int i = numVnirImages; i < numVnirImages + numSwirImages; i++) {
+            FlagCoding swirFlagCoding = new FlagCoding(QUALITY_PIXELMASK_SWIR_KEY);
+            product.getFlagCodingGroup().add(swirFlagCoding);
+            QualityLayerInfo.QL_PM_SWIR_DEFECTIVE_SERIES.addFlagSeriesTo(swirFlagCoding, numVnirImages+1, numSwirImages);
+            QualityLayerInfo.QL_PM_SWIR_DEFECTIVE_SERIES.addMaskSeriesTo(product, numVnirImages+1, numSwirImages);
+
+            for (int i = 0; i < numSwirImages; i++) {
                 RenderedImage imageAt = pixelMaskReader.getImageAt(i);
-                addFlagBand(product, swirFlagCoding, String.format("%s_%03d", swirQualityKey, i + 1), imageAt);
+                addFlagBand(product, String.format("%s_%03d", QUALITY_PIXELMASK_SWIR_KEY, numVnirImages + i+1), swirFlagCoding, imageAt);
             }
 
         } else {
@@ -237,11 +237,11 @@ class EnmapProductReader extends AbstractProductReader {
             FlagCoding flagCoding = new FlagCoding(qualityKey);
             product.getFlagCodingGroup().add(flagCoding);
 
-            QualityLayerInfo.QL_PM_DEFECTIVE_SERIES.addFlagSeriesTo(flagCoding, numImages);
-            QualityLayerInfo.QL_PM_DEFECTIVE_SERIES.addMaskSeriesTo(product, numImages);
+            QualityLayerInfo.QL_PM_DEFECTIVE_SERIES.addFlagSeriesTo(flagCoding, 1, numImages);
+            QualityLayerInfo.QL_PM_DEFECTIVE_SERIES.addMaskSeriesTo(product, 1, numImages);
             for (int i = 0; i < numImages; i++) {
                 RenderedImage imageAt = pixelMaskReader.getImageAt(i);
-                addFlagBand(product, flagCoding, String.format("%s_%03d", qualityKey, i + 1), imageAt);
+                addFlagBand(product, String.format("%s_%03d", qualityKey, i + 1), flagCoding, imageAt);
             }
 
         }
@@ -277,7 +277,7 @@ class EnmapProductReader extends AbstractProductReader {
             EnmapImageReader qualityVnirReader = EnmapImageReader.createImageReader(dataDir, meta, vnirQualityKey);
             imageReaderList.add(qualityVnirReader); // prevents finalising the reader
 
-            addFlagBand(product, vnirFlagCoding, vnirQualityKey, qualityVnirReader.getImageAt(0));
+            addFlagBand(product, vnirQualityKey, vnirFlagCoding, qualityVnirReader.getImageAt(0));
 
             String swirQualityKey = QUALITY_TESTFLAGS_SWIR_KEY;
             FlagCoding swirFlagCoding = new FlagCoding(swirQualityKey);
@@ -307,7 +307,7 @@ class EnmapProductReader extends AbstractProductReader {
             EnmapImageReader qualitySwirReader = EnmapImageReader.createImageReader(dataDir, meta, swirQualityKey);
             imageReaderList.add(qualitySwirReader); // prevents finalising the reader
 
-            addFlagBand(product, swirFlagCoding, swirQualityKey, qualitySwirReader.getImageAt(0));
+            addFlagBand(product, swirQualityKey, swirFlagCoding, qualitySwirReader.getImageAt(0));
         } else {
             String qualityKey = QUALITY_TESTFLAGS_KEY;
             FlagCoding flagCoding = new FlagCoding(qualityKey);
@@ -336,18 +336,17 @@ class EnmapProductReader extends AbstractProductReader {
             EnmapImageReader qualityReader = EnmapImageReader.createImageReader(dataDir, meta, qualityKey);
             imageReaderList.add(qualityReader); // prevents finalising the reader
 
-            addFlagBand(product, flagCoding, qualityKey, qualityReader.getImageAt(0));
+            addFlagBand(product, qualityKey, flagCoding, qualityReader.getImageAt(0));
         }
     }
 
-    private void addFlagBand(Product product, FlagCoding flagCoding, String qualityKey, RenderedImage dataImage) {
-        Band flagBand = new Band(qualityKey, ProductData.TYPE_UINT8, dataImage.getWidth(), dataImage.getHeight());
+    private void addFlagBand(Product product, String bandName, FlagCoding flagCoding, RenderedImage dataImage) {
+        Band flagBand = new Band(bandName, ProductData.TYPE_UINT8, dataImage.getWidth(), dataImage.getHeight());
         flagBand.setSampleCoding(flagCoding);
         // first the band needs to be added to the product and only then the source mage set
         // see: https://senbox.atlassian.net/browse/SNAP-935
         product.addBand(flagBand);
-        bandImageMap.put(qualityKey, dataImage);
-//        flagBand.setSourceImage(dataImage);
+        bandImageMap.put(bandName, dataImage);
     }
 
     private void addTiePointGrids(Product product, EnmapMetadata meta) throws IOException {
