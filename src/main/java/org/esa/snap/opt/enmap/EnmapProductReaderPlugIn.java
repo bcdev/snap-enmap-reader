@@ -7,6 +7,7 @@ import org.esa.snap.core.dataio.ProductReaderPlugIn;
 import org.esa.snap.core.util.io.SnapFileFilter;
 import org.esa.snap.runtime.Config;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -14,6 +15,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.prefs.Preferences;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class EnmapProductReaderPlugIn implements ProductReaderPlugIn {
 
@@ -35,19 +38,22 @@ public class EnmapProductReaderPlugIn implements ProductReaderPlugIn {
             if (path == null) {
                 return DecodeQualification.UNABLE;
             }
+
+            List<Path> filePaths;
             if (!EnmapFileUtils.isZip(path)) {
-                path = path.getParent();
-            }
-            if (path != null) {
+                try (Stream<Path> list = Files.list(path.getParent())) {
+                    filePaths = list.collect(Collectors.toList());
+                }
+            }else {
                 VirtualDir virtualDir = VirtualDir.create(path.toFile());
                 String[] fileNames = virtualDir.listAllFiles();
-                List<Path> filePaths = new ArrayList<>();
+                filePaths = new ArrayList<>();
                 for (String fileName : fileNames) {
                     filePaths.add(Paths.get(fileName));
                 }
-                if (areEnmapL1bFiles(filePaths) || areEnmapL1cFiles(filePaths) || areEnmapL2aFiles(filePaths)) {
-                    return DecodeQualification.INTENDED;
-                }
+            }
+            if (areEnmapL1bFiles(filePaths) || areEnmapL1cFiles(filePaths) || areEnmapL2aFiles(filePaths)) {
+                return DecodeQualification.INTENDED;
             }
         } catch (Throwable t) {
             return DecodeQualification.UNABLE;

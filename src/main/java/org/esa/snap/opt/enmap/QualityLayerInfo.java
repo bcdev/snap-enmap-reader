@@ -41,11 +41,6 @@ class QualityLayerInfo {
     static QualityLayerInfo QL_PM_DEFECTIVE_SERIES = create("Defective", "Defective pixel",
             QUALITY_PIXELMASK_KEY, 1, Color.RED);
 
-    static QualityLayerInfo QL_PM_VNIR_DEFECTIVE_SERIES = create("Defective", "Defective VNIR pixel",
-            QUALITY_PIXELMASK_VNIR_KEY, 1, Color.RED);
-    static QualityLayerInfo QL_PM_SWIR_DEFECTIVE_SERIES = create("Defective", "Defective SWIR pixel",
-            QUALITY_PIXELMASK_SWIR_KEY, 1, Color.RED);
-
     static QualityLayerInfo QL_TF_NOMINAL = create("Nominal", "Nominal quality",
             QUALITY_TESTFLAGS_KEY, 0b11, 0b00, Color.GREEN.brighter());
 
@@ -142,7 +137,7 @@ class QualityLayerInfo {
     String qualityKey;
     String maskExpression;
     int flagMask;
-    private Integer flagValue;
+    private final Integer flagValue;
     Color maskColor;
     float transparency;
 
@@ -186,17 +181,6 @@ class QualityLayerInfo {
         }
     }
 
-    void addFlagSeriesTo(FlagCoding flagCoding, int startIndex, int numFlags) {
-        for (int i = 0; i < numFlags; i++) {
-            String seriesFlagName = String.format("%s_%03d", flagName, startIndex +i);
-            if (flagValue != null) {
-                flagCoding.addFlag(seriesFlagName, flagMask, flagValue, description);
-            } else {
-                flagCoding.addFlag(seriesFlagName, flagMask, description);
-            }
-        }
-    }
-
     void addMaskTo(Product product) {
         int w = product.getSceneRasterWidth();
         int h = product.getSceneRasterHeight();
@@ -204,13 +188,13 @@ class QualityLayerInfo {
                 String.format("%s.%s", qualityKey, flagName), maskColor, transparency));
     }
 
-    void addMaskSeriesTo(Product product, int startIndex, int numMasks) {
+    void addMaskSeriesTo(Product product, int numMasks) {
         int w = product.getSceneRasterWidth();
         int h = product.getSceneRasterHeight();
         for (int i = 0; i < numMasks; i++) {
-            String seriesMaskName = String.format("%s_%03d", maskName, startIndex + i);
+            String seriesMaskName = String.format("%s_%03d", maskName, 1 + i);
             product.getMaskGroup().add(Mask.BandMathsType.create(seriesMaskName, description, w, h,
-                    String.format("%s.%s_%03d", qualityKey, flagName, startIndex + i), maskColor, transparency));
+                    String.format("%s_%03d.%s", qualityKey, 1 + i, flagName), maskColor, transparency));
         }
     }
 }

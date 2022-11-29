@@ -105,8 +105,6 @@ class EnmapProductReader extends AbstractProductReader {
     }
 
     private void addQualityLayers(Product product, EnmapMetadata meta) throws IOException {
-        // cannot be read correctly something is wrong with the GeoTIFF, see important note in the test data set.
-        addPixelMasksQl(product, dataDir, meta);
         addClassesQl(product, meta);
         addHazeQl(product, meta);
         addCloudQl(product, meta);
@@ -114,6 +112,7 @@ class EnmapProductReader extends AbstractProductReader {
         addCloudShadowQl(product, meta);
         addSnowQl(product, meta);
         addTestFlagsQl(product, meta);
+        addPixelMasksQl(product, dataDir, meta);
     }
 
     private void addClassesQl(Product product, EnmapMetadata meta) throws IOException {
@@ -128,7 +127,7 @@ class EnmapProductReader extends AbstractProductReader {
         QualityLayerInfo.QL_CLASSES_BG.addMaskTo(product);
 
         EnmapImageReader qualityReader = EnmapImageReader.createImageReader(dataDir, meta, qualityKey);
-        imageReaderList.add(qualityReader); // prevents finalising the reader
+        imageReaderList.add(qualityReader);
 
         RenderedImage imageAt = qualityReader.getImageAt(0);
         addFlagBand(product, qualityKey, flagCoding, imageAt);
@@ -206,45 +205,18 @@ class EnmapProductReader extends AbstractProductReader {
     private void addPixelMasksQl(Product product, VirtualDir dataDir, EnmapMetadata meta) throws IOException {
         EnmapImageReader pixelMaskReader = EnmapImageReader.createPixelMaskReader(dataDir, meta);
         imageReaderList.add(pixelMaskReader);
-        if (EnmapMetadata.PROCESSING_LEVEL.L1B.equals(meta.getProcessingLevel())) {
-            int numVnirImages = meta.getNumVnirBands();
+        FlagCoding flagCoding = new FlagCoding(QUALITY_PIXELMASK_KEY);
+        flagCoding.addFlag("Defective", 1, "Defective pixel");
+        product.getFlagCodingGroup().add(flagCoding);
 
-            FlagCoding vnirFlagCoding = new FlagCoding(QUALITY_PIXELMASK_VNIR_KEY);
-            product.getFlagCodingGroup().add(vnirFlagCoding);
-            QualityLayerInfo.QL_PM_VNIR_DEFECTIVE_SERIES.addFlagSeriesTo(vnirFlagCoding, 1, numVnirImages);
-            QualityLayerInfo.QL_PM_VNIR_DEFECTIVE_SERIES.addMaskSeriesTo(product, 1, numVnirImages);
-
-            for (int i = 0; i < numVnirImages; i++) {
-                RenderedImage imageAt = pixelMaskReader.getImageAt(i);
-                addFlagBand(product, String.format("%s_%03d", QUALITY_PIXELMASK_VNIR_KEY, i + 1), vnirFlagCoding, imageAt);
-            }
-
-            int numSwirImages = meta.getNumSwirBands();
-
-            FlagCoding swirFlagCoding = new FlagCoding(QUALITY_PIXELMASK_SWIR_KEY);
-            product.getFlagCodingGroup().add(swirFlagCoding);
-            QualityLayerInfo.QL_PM_SWIR_DEFECTIVE_SERIES.addFlagSeriesTo(swirFlagCoding, numVnirImages+1, numSwirImages);
-            QualityLayerInfo.QL_PM_SWIR_DEFECTIVE_SERIES.addMaskSeriesTo(product, numVnirImages+1, numSwirImages);
-
-            for (int i = 0; i < numSwirImages; i++) {
-                RenderedImage imageAt = pixelMaskReader.getImageAt(i);
-                addFlagBand(product, String.format("%s_%03d", QUALITY_PIXELMASK_SWIR_KEY, numVnirImages + i+1), swirFlagCoding, imageAt);
-            }
-
-        } else {
-            int numImages = meta.getNumSpectralBands();
-            String qualityKey = QUALITY_PIXELMASK_KEY;
-            FlagCoding flagCoding = new FlagCoding(qualityKey);
-            product.getFlagCodingGroup().add(flagCoding);
-
-            QualityLayerInfo.QL_PM_DEFECTIVE_SERIES.addFlagSeriesTo(flagCoding, 1, numImages);
-            QualityLayerInfo.QL_PM_DEFECTIVE_SERIES.addMaskSeriesTo(product, 1, numImages);
-            for (int i = 0; i < numImages; i++) {
-                RenderedImage imageAt = pixelMaskReader.getImageAt(i);
-                addFlagBand(product, String.format("%s_%03d", qualityKey, i + 1), flagCoding, imageAt);
-            }
-
+        for (int i = 0; i < meta.getNumSpectralBands(); i++) {
+            RenderedImage imageAt = pixelMaskReader.getImageAt(i);
+            Band flagBand = addFlagBand(product, String.format("%s_%03d", QUALITY_PIXELMASK_KEY, i + 1), flagCoding, imageAt);
+            flagBand.setNoDataValueUsed(true);
+            flagBand.setNoDataValue(meta.getPixelmaskBackgroundValue());
         }
+        QualityLayerInfo.QL_PM_DEFECTIVE_SERIES.addMaskSeriesTo(product, meta.getNumSpectralBands());
+
     }
 
     private void addTestFlagsQl(Product product, EnmapMetadata meta) throws IOException {
@@ -340,13 +312,14 @@ class EnmapProductReader extends AbstractProductReader {
         }
     }
 
-    private void addFlagBand(Product product, String bandName, FlagCoding flagCoding, RenderedImage dataImage) {
+    private Band addFlagBand(Product product, String bandName, FlagCoding flagCoding, RenderedImage dataImage) {
         Band flagBand = new Band(bandName, ProductData.TYPE_UINT8, dataImage.getWidth(), dataImage.getHeight());
         flagBand.setSampleCoding(flagCoding);
         // first the band needs to be added to the product and only then the source mage set
         // see: https://senbox.atlassian.net/browse/SNAP-935
         product.addBand(flagBand);
         bandImageMap.put(bandName, dataImage);
+        return flagBand;
     }
 
     private void addTiePointGrids(Product product, EnmapMetadata meta) throws IOException {
@@ -387,9 +360,10 @@ class EnmapProductReader extends AbstractProductReader {
 
         int dataType = meta.getSpectralDataType();
         for (int i = 0; i < spectralImageReader.getNumImages(); i++) {
-            String bandName = String.format("band_%03d", spectralIndices[i]);
+            int spectralIndex = spectralIndices[i];
+            String bandName = String.format("band_%03d", spectralIndex);
             Band band = new Band(bandName, dataType, product.getSceneRasterWidth(), product.getSceneRasterHeight());
-            band.setSpectralBandIndex(spectralIndices[i] - 1);
+            band.setSpectralBandIndex(spectralIndex - 1);
             band.setSpectralWavelength(meta.getCentralWavelength(i));
             band.setSpectralBandwidth(meta.getBandwidth(i));
             band.setDescription(meta.getSpectralBandDescription(i));
@@ -399,7 +373,6 @@ class EnmapProductReader extends AbstractProductReader {
             band.setNoDataValue(meta.getSpectralBackgroundValue());
             band.setNoDataValueUsed(true);
             bandImageMap.put(bandName, spectralImageReader.getImageAt(i));
-//            band.setSourceImage(spectralImageReader.getImageAt(i));
             product.addBand(band);
         }
 

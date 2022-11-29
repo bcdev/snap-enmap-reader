@@ -33,6 +33,7 @@ public abstract class EnmapMetadata {
     private final XPath xpath;
     private final Document doc;
 
+
     public enum PROCESSING_LEVEL {L1B, L1C, L2A}
 
     String NOT_AVAILABLE = "NA";
@@ -441,7 +442,7 @@ public abstract class EnmapMetadata {
     }
 
     /**
-     * the background (no-data) value indicating that the pixel contains no measurement
+     * returns the background (no-data) value for the spectral bands indicating that the pixel contains no measurement
      *
      * @return the background value
      * @throws IOException in case the metadata XML file could not be read
@@ -449,6 +450,16 @@ public abstract class EnmapMetadata {
     public float getSpectralBackgroundValue() throws IOException {
         return Float.parseFloat(getNodeContent("/level_X/specific/backgroundValue"));
     }
+
+    /**
+     * returns the background (no-data) value for the pixel mask bands indicating that the pixel contains no measurement
+     *
+     * @return the background value
+     */
+    public double getPixelmaskBackgroundValue() {
+        return 255;
+    }
+
 
     /**
      * returns the number of SWIR bands
