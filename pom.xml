@@ -6,7 +6,7 @@
     <groupId>org.esa.snap</groupId>
     <artifactId>snap-enmap</artifactId>
     <packaging>nbm</packaging>
-    <version>0.5.15-SNAPSHOT</version>
+    <version>0.5.15-BETA</version>
 
 
     <name>EnMAP Product Reader</name>
