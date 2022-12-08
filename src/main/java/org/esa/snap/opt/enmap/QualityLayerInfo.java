@@ -71,16 +71,16 @@ class QualityLayerInfo {
     static QualityLayerInfo QL_TF_ARTEFACT_VNIR = create("Artefact_Vnir", "Artefact VNIR pixel",
             QUALITY_TESTFLAGS_KEY, BitSetter.setFlag(0, 7), Color.BLUE.darker());
 
-    static QualityLayerInfo QL_TF_VNIR_NOMINAL = create("Nominal", "Nominal quality",
+    static QualityLayerInfo QL_TF_VNIR_NOMINAL = create("Nominal_Vnir", "Nominal quality for VNIR",
             QUALITY_TESTFLAGS_VNIR_KEY, 0b11, 0b00, Color.GREEN.brighter());
 
-    static QualityLayerInfo QL_TF_VNIR_REDUCED = create("Reduced", "Reduced quality",
+    static QualityLayerInfo QL_TF_VNIR_REDUCED = create("Reduced_Vnir", "Reduced quality for VNIR",
             QUALITY_TESTFLAGS_VNIR_KEY, 0b11, 0b01, Color.ORANGE);
 
-    static QualityLayerInfo QL_TF_VNIR_LOW = create("Low", "Low Quality",
+    static QualityLayerInfo QL_TF_VNIR_LOW = create("Low_Vnir", "Low Quality for VNIR",
             QUALITY_TESTFLAGS_VNIR_KEY, 0b11, 0b10, Color.RED);
 
-    static QualityLayerInfo QL_TF_VNIR_NOT = create("Not_Produced", "Quality information not produced",
+    static QualityLayerInfo QL_TF_VNIR_NOT = create("Not_Produced_Vnir", "Quality information not produced for VNIR",
             QUALITY_TESTFLAGS_VNIR_KEY, 0b11, 0b11, Color.CYAN);
 
     static QualityLayerInfo QL_TF_VNIR_INTERPOLATED_SWIR = create("Interpolated_Swir", "Interpolated SWIR pixel",
@@ -101,16 +101,16 @@ class QualityLayerInfo {
     static QualityLayerInfo QL_TF_VNIR_ARTEFACT_VNIR = create("Artefact_Vnir", "Artefact VNIR pixel",
             QUALITY_TESTFLAGS_VNIR_KEY, BitSetter.setFlag(0, 7), Color.BLUE.darker());
 
-    static QualityLayerInfo QL_TF_SWIR_NOMINAL = create("Nominal", "Nominal quality",
+    static QualityLayerInfo QL_TF_SWIR_NOMINAL = create("Nominal_Swir", "Nominal quality for SWIR",
             QUALITY_TESTFLAGS_SWIR_KEY, 0b11, 0b00, Color.GREEN.brighter());
 
-    static QualityLayerInfo QL_TF_SWIR_REDUCED = create("Reduced", "Reduced quality",
+    static QualityLayerInfo QL_TF_SWIR_REDUCED = create("Reduced_Swir", "Reduced quality for SWIR",
             QUALITY_TESTFLAGS_SWIR_KEY, 0b11, 0b01, Color.ORANGE);
 
-    static QualityLayerInfo QL_TF_SWIR_LOW = create("Low", "Low Quality",
+    static QualityLayerInfo QL_TF_SWIR_LOW = create("Low_Swir", "Low Quality for SWIR",
             QUALITY_TESTFLAGS_SWIR_KEY, 0b11, 0b10, Color.RED);
 
-    static QualityLayerInfo QL_TF_SWIR_NOT = create("Not_Produced", "Quality information not produced",
+    static QualityLayerInfo QL_TF_SWIR_NOT = create("Not_Produced_Swir", "Quality information not produced for SWIR",
             QUALITY_TESTFLAGS_SWIR_KEY, 0b11, 0b11, Color.CYAN);
 
     static QualityLayerInfo QL_TF_SWIR_INTERPOLATED_SWIR = create("Interpolated_Swir", "Interpolated SWIR pixel",
