@@ -508,6 +508,7 @@ public abstract class EnmapMetadata {
     /**
      * returns a description for the spectral channel at the specified index
      *
+     * @param index the index (zero-based) of the spectral channel to retrieve the description for
      * @return description for the specified spectral channel
      */
     public abstract String getSpectralBandDescription(int index) throws IOException;
