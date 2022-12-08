@@ -405,7 +405,7 @@ public abstract class EnmapMetadata {
      * @throws IOException in case the metadata XML file could not be read
      */
     public float getCentralWavelength(int index) throws IOException {
-        return Float.parseFloat(getNodeContent(String.format("/level_X/specific/bandCharacterisation/bandID[@number='%d']/wavelengthCenterOfBand", index + 1)));
+        return getNodeContentAsFloat(String.format("/level_X/specific/bandCharacterisation/bandID[@number='%d']/wavelengthCenterOfBand", index + 1));
     }
 
     /**
@@ -416,7 +416,7 @@ public abstract class EnmapMetadata {
      * @throws IOException in case the metadata XML file could not be read
      */
     public float getBandwidth(int index) throws IOException {
-        return Float.parseFloat(getNodeContent(String.format("/level_X/specific/bandCharacterisation/bandID[@number='%d']/FWHMOfBand", index + 1)));
+        return getNodeContentAsFloat(String.format("/level_X/specific/bandCharacterisation/bandID[@number='%d']/FWHMOfBand", index + 1));
     }
 
     /**
@@ -427,7 +427,7 @@ public abstract class EnmapMetadata {
      * @throws IOException in case the metadata XML file could not be read
      */
     public float getBandScaling(int index) throws IOException {
-        return Float.parseFloat(getNodeContent(String.format("/level_X/specific/bandCharacterisation/bandID[@number='%d']/GainOfBand", index + 1)));
+        return getNodeContentAsFloat(String.format("/level_X/specific/bandCharacterisation/bandID[@number='%d']/GainOfBand", index + 1));
     }
 
     /**
@@ -438,7 +438,7 @@ public abstract class EnmapMetadata {
      * @throws IOException in case the metadata XML file could not be read
      */
     public float getBandOffset(int index) throws IOException {
-        return Float.parseFloat(getNodeContent(String.format("/level_X/specific/bandCharacterisation/bandID[@number='%d']/OffsetOfBand", index + 1)));
+        return getNodeContentAsFloat(String.format("/level_X/specific/bandCharacterisation/bandID[@number='%d']/OffsetOfBand", index + 1));
     }
 
     /**
@@ -448,7 +448,7 @@ public abstract class EnmapMetadata {
      * @throws IOException in case the metadata XML file could not be read
      */
     public float getSpectralBackgroundValue() throws IOException {
-        return Float.parseFloat(getNodeContent("/level_X/specific/backgroundValue"));
+        return getNodeContentAsFloat("/level_X/specific/backgroundValue");
     }
 
     /**
@@ -490,7 +490,7 @@ public abstract class EnmapMetadata {
      * @throws IOException in case the metadata XML file could not be read
      */
     public int getNumSwirBands() throws IOException {
-        return Integer.parseInt(getNodeContent("/level_X/specific/swirProductQuality/numChannelsExpected"));
+        return getNodeContentAsInt("/level_X/specific/swirProductQuality/numChannelsExpected");
     }
 
     /**
@@ -603,8 +603,12 @@ public abstract class EnmapMetadata {
         }
     }
 
-    private Node getNode(String path) throws IOException {
-        return getNode(path, xpath, doc);
+    private int getNodeContentAsInt(String path) throws IOException {
+        return Integer.parseInt(getNodeContent(path));
+    }
+
+    private float getNodeContentAsFloat(String path) throws IOException {
+        return Float.parseFloat(getNodeContent(path));
     }
 
     private static Node getNode(String path, XPath xpath, Document doc) throws IOException {

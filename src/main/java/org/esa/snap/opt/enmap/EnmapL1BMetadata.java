@@ -66,8 +66,6 @@ class EnmapL1BMetadata extends EnmapMetadata {
 
     @Override
     public int getNumSpectralBands() throws IOException {
-        int vnirChannels = Integer.parseInt(getNodeContent("/level_X/product/image/vnir/channels"));
-        int swirChannels = Integer.parseInt(getNodeContent("/level_X/product/image/swir/channels"));
-        return vnirChannels + swirChannels;
+        return getNumVnirBands() + getNumSwirBands();
     }
 }
