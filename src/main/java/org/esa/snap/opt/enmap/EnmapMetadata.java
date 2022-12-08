@@ -33,7 +33,6 @@ public abstract class EnmapMetadata {
     private final XPath xpath;
     private final Document doc;
 
-
     public enum PROCESSING_LEVEL {L1B, L1C, L2A}
 
     String NOT_AVAILABLE = "NA";
@@ -514,6 +513,16 @@ public abstract class EnmapMetadata {
     }
 
     /**
+     * returns the indices for all spectral bands
+     *
+     * @return the indices for all spectral bands
+     * @throws IOException in case the metadata XML file could not be read
+     */
+    public int[] getSpectralIndices() throws IOException {
+        return joinArrays(getVnirIndices(), getSwirIndices());
+    }
+
+    /**
      * returns a description for the spectral channel at the specified index
      *
      * @param index the index (zero-based) of the spectral channel to retrieve the description for
@@ -661,4 +670,7 @@ public abstract class EnmapMetadata {
         return IntStream.range(0, childNodes.getLength()).anyMatch(i -> Node.ELEMENT_NODE == childNodes.item(i).getNodeType());
     }
 
+    private static int[] joinArrays(int[] vnirIndices, int[] swirIndices) {
+        return IntStream.concat(Arrays.stream(vnirIndices), Arrays.stream(swirIndices)).toArray();
+    }
 }

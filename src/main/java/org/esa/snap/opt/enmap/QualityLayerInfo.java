@@ -3,9 +3,13 @@ package org.esa.snap.opt.enmap;
 import org.esa.snap.core.datamodel.FlagCoding;
 import org.esa.snap.core.datamodel.Mask;
 import org.esa.snap.core.datamodel.Product;
+import org.esa.snap.core.datamodel.ProductNodeGroup;
 import org.esa.snap.core.util.BitSetter;
 
-import java.awt.*;
+import java.awt.Color;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.esa.snap.opt.enmap.EnmapFileUtils.*;
 
@@ -182,19 +186,50 @@ class QualityLayerInfo {
     }
 
     void addMaskTo(Product product) {
-        int w = product.getSceneRasterWidth();
-        int h = product.getSceneRasterHeight();
-        product.getMaskGroup().add(Mask.BandMathsType.create(maskName, description, w, h,
+        int width = product.getSceneRasterWidth();
+        int height = product.getSceneRasterHeight();
+        product.getMaskGroup().add(Mask.BandMathsType.create(maskName, description, width, height,
                 String.format("%s.%s", qualityKey, flagName), maskColor, transparency));
     }
 
-    void addMaskSeriesTo(Product product, int numMasks) {
-        int w = product.getSceneRasterWidth();
-        int h = product.getSceneRasterHeight();
-        for (int i = 0; i < numMasks; i++) {
-            String seriesMaskName = String.format("%s_%03d", maskName, 1 + i);
-            product.getMaskGroup().add(Mask.BandMathsType.create(seriesMaskName, description, w, h,
-                    String.format("%s_%03d.%s", qualityKey, 1 + i, flagName), maskColor, transparency));
+    void addMasksTo(Product product, EnmapMetadata meta) throws IOException {
+        int width = product.getSceneRasterWidth();
+        int height = product.getSceneRasterHeight();
+        ProductNodeGroup<Mask> maskGroup = product.getMaskGroup();
+        int[] spectralIndices = meta.getSpectralIndices();
+        StringBuilder vnirMaskExpression = new StringBuilder();
+        StringBuilder swirMaskExpression = new StringBuilder();
+        List<Mask> spectralMasks = new ArrayList<>();
+        for (int i = 0; i < meta.getNumSpectralBands(); i++) {
+            int spectralIndex = spectralIndices[i];
+            String seriesMaskName = String.format("%s_%03d", maskName, spectralIndex);
+            String maskExpression = String.format("%s_%03d.%s", qualityKey, spectralIndex, flagName);
+            spectralMasks.add(Mask.BandMathsType.create(seriesMaskName, description, width, height,
+                    maskExpression, maskColor, transparency));
+            if(i < meta.getNumVnirBands()) {
+                addMaskToCombinedExpression(vnirMaskExpression, seriesMaskName);
+            }else {
+                addMaskToCombinedExpression(swirMaskExpression, seriesMaskName);
+            }
         }
+
+        String vnirDefectiveMaskName = "VNIR_Defective_Pixels";
+        maskGroup.add(Mask.BandMathsType.create(vnirDefectiveMaskName, "Masks all defective VNIR pixels",
+                width, height, vnirMaskExpression.toString(), Color.RED, 0.3));
+        String swirDefectiveMaskName = "SWIR_Defective_Pixels";
+        maskGroup.add(Mask.BandMathsType.create(swirDefectiveMaskName, "Masks all defective SWIR pixels",
+                width, height, swirMaskExpression.toString(), Color.RED, 0.3));
+         maskGroup.add(Mask.BandMathsType.create("All_Defective_Pixels", "Masks all defective pixels",
+                width, height, String.format("%s || %s", vnirDefectiveMaskName, swirDefectiveMaskName), Color.RED, 0.3));
+
+        spectralMasks.forEach(maskGroup::add);
+
+    }
+
+    private static void addMaskToCombinedExpression(StringBuilder vnirMaskExpression, String seriesMaskName) {
+        if(vnirMaskExpression.length() > 0) {
+            vnirMaskExpression.append(" || ");
+        }
+        vnirMaskExpression.append(seriesMaskName);
     }
 }
