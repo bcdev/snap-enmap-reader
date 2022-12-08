@@ -4,7 +4,6 @@ import org.esa.snap.core.datamodel.ProductData;
 import org.w3c.dom.Document;
 
 import javax.xml.xpath.XPath;
-import java.io.IOException;
 
 class EnmapL1CMetadata extends EnmapOrthoMetadata {
 
@@ -13,8 +12,8 @@ class EnmapL1CMetadata extends EnmapOrthoMetadata {
     }
 
     @Override
-    public String getSpectralBandDescription(int index) throws IOException {
-        return String.format("Sensor radiance @%s", getCentralWavelength(index));
+    public String getSpectralMeasurementName() {
+        return "radiance";
     }
 
     @Override

@@ -83,6 +83,10 @@ public class EnmapL2AMetadataTest {
         assertEquals("ENMAP_L2A", meta.getProductType());
         assertEquals(new Dimension(1128, 1212), meta.getSceneDimension());
         assertEquals(218, meta.getNumSpectralBands());
+        assertEquals(88, meta.getNumVnirBands());
+        assertEquals(130, meta.getNumSwirBands());
+        assertEquals("VNIR surface reflectance @823.46", meta.getSpectralBandDescription(67));
+        assertEquals("SWIR surface reflectance @2217.8", meta.getSpectralBandDescription(189));
     }
 
     @Test

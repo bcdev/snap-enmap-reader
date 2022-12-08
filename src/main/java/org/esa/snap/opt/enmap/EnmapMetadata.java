@@ -398,6 +398,14 @@ public abstract class EnmapMetadata {
     public abstract int getNumSpectralBands() throws IOException;
 
     /**
+     * Gets the name of the spectral measurements. This 'radiance' in case of
+     * L1B and L1C data and 'surface reflectance' for L2 data
+     *
+     * @return the name for the spectral measurements
+     */
+    public abstract String getSpectralMeasurementName();
+
+    /**
      * returns the central wavelength of the channel at the specified spectral index
      *
      * @param index the spectral index
@@ -511,7 +519,12 @@ public abstract class EnmapMetadata {
      * @param index the index (zero-based) of the spectral channel to retrieve the description for
      * @return description for the specified spectral channel
      */
-    public abstract String getSpectralBandDescription(int index) throws IOException;
+    public String getSpectralBandDescription(int index) throws IOException {
+        String spectralArea = index < getNumVnirBands() ? "VNIR" : "SWIR";
+        String measurementName = getSpectralMeasurementName();
+        float wavelength = getCentralWavelength(index);
+        return String.format("%s %s @%s", spectralArea, measurementName, wavelength);
+    }
 
     /**
      * Returns the physical unit of the spectral channels

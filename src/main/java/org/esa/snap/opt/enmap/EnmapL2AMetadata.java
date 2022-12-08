@@ -23,8 +23,8 @@ class EnmapL2AMetadata extends EnmapOrthoMetadata {
     }
 
     @Override
-    public String getSpectralBandDescription(int index) throws IOException {
-        return String.format("Surface reflectance @%s", getCentralWavelength(index));
+    public String getSpectralMeasurementName() {
+        return "surface reflectance";
     }
 
     @Override

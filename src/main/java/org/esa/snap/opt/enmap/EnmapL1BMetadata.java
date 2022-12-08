@@ -29,8 +29,8 @@ class EnmapL1BMetadata extends EnmapMetadata {
     }
 
     @Override
-    public String getSpectralBandDescription(int index) throws IOException {
-        return String.format("Sensor radiance @%s", getCentralWavelength(index));
+    public String getSpectralMeasurementName() {
+        return "radiance";
     }
 
     @Override
