@@ -6,15 +6,15 @@
     <groupId>org.esa.snap</groupId>
     <artifactId>snap-enmap</artifactId>
     <packaging>nbm</packaging>
-    <version>0.5.01-ALPHA</version>
+    <version>0.5.05-ALPHA</version>
 
 
     <name>EnMAP Product Reader</name>
     <description>A product reader EnMAP L1B/L1C/L2A data</description>
 
     <properties>
-        <snap.version>9.0.0</snap.version>
-        <s2tbx.version>9.0.0</s2tbx.version>
+        <snap.version>8.0.6</snap.version>
+        <s2tbx.version>8.0.4</s2tbx.version>
         <javahelp.version>2.0.05</javahelp.version>
         <netbeans.version>RELEASE82</netbeans.version>
     </properties>
