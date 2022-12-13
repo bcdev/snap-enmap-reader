@@ -6,11 +6,11 @@
     <groupId>org.esa.snap</groupId>
     <artifactId>snap-enmap</artifactId>
     <packaging>nbm</packaging>
-    <version>0.8-SNAPSHOT</version>
+    <version>0.8-BETA</version>
 
 
     <name>EnMAP Product Reader</name>
-    <description>A product reader EnMAP L1B/L1C/L2A data</description>
+    <description>A product reader for EnMAP L1B/L1C/L2A data</description>
 
     <properties>
         <snap.version>8.0.6</snap.version>
